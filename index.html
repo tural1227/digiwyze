@@ -4450,12 +4450,51 @@
       'terrace': 'tour_terrace_4k.jpg'
     };
 
+    function getAptTourImagePath(apt, roomType) {
+      if (!apt) return tourImageMap[roomType] || 'tour_living_4k.jpg';
+      const rooms = apt.rooms || 2;
+      const area = apt.area || 70;
+
+      // Tier 1: 1-Room Compact Studios (45 - 58 m²) - Studio Open Living & Kitchen
+      if (rooms === 1) {
+        if (roomType === 'living') return 'real_wooden_lounge.jpg?v=studio';
+        if (roomType === 'kitchen') return 'real_panoramic_suite.jpg?v=studio';
+        return 'tour_terrace_4k.jpg?v=studio';
+      }
+
+      // Tier 2: 2-Room Standard & Medium Family Apartments (60 - 80 m²) - Classic Residential Suite
+      if (rooms === 2) {
+        if (roomType === 'living') return 'real_lythwood_living.jpg?v=2room';
+        if (roomType === 'bedroom') return 'real_hotel_bedroom.jpg?v=2room';
+        if (roomType === 'kitchen') return 'real_panoramic_suite.jpg?v=2room';
+        return 'tour_terrace_4k.jpg?v=2room';
+      }
+
+      // Tier 3: 3-Room Large Corner & Family Residences (82 - 110 m²) - Grand Multi-Room Residence
+      if (rooms === 3) {
+        if (roomType === 'living') return 'real_lythwood_living.jpg?v=3room';
+        if (roomType === 'bedroom') return 'real_hotel_bedroom.jpg?v=3room';
+        if (roomType === 'bedroom2') return 'real_wooden_lounge.jpg?v=3room';
+        if (roomType === 'kitchen') return 'real_panoramic_suite.jpg?v=3room';
+        return 'tour_terrace_4k.jpg?v=3room';
+      }
+
+      // Tier 4: Penthouses & Executive Suites (110+ m²) - High-End Luxury Penthouse Suite
+      if (roomType === 'living') return 'real_panoramic_suite.jpg?v=penth';
+      if (roomType === 'bedroom') return 'real_hotel_bedroom.jpg?v=penth';
+      if (roomType === 'kitchen') return 'real_lythwood_living.jpg?v=penth';
+      if (roomType === 'panoramic') return 'real_wooden_lounge.jpg?v=penth';
+      return 'tour_terrace_4k.jpg?v=penth';
+    }
+
     function loadTourTexture(roomType, callback) {
-      if (tourTextureCache[roomType]) {
-        if (callback) callback(tourTextureCache[roomType]);
+      const apt = apartments.find(a => String(a.number) === String(currentSelectedAptCode)) || { rooms: 2, area: 68 };
+      const cacheKey = `${apt.rooms}_${roomType}`;
+      if (tourTextureCache[cacheKey]) {
+        if (callback) callback(tourTextureCache[cacheKey]);
         return;
       }
-      const rawPath = tourImageMap[roomType] || 'tour_living_4k.jpg';
+      const rawPath = getAptTourImagePath(apt, roomType);
       const fallback = tourFallbackMap[roomType] || 'tour_living.jpg';
 
       tourTextureLoader.load(
@@ -4468,14 +4507,14 @@
           if (tourRenderer && tourRenderer.capabilities) {
             tex.anisotropy = tourRenderer.capabilities.getMaxAnisotropy();
           }
-          tourTextureCache[roomType] = tex;
+          tourTextureCache[cacheKey] = tex;
           if (callback) callback(tex);
         },
         undefined,
         () => {
           tourTextureLoader.load(fallback, (fbTex) => {
             fbTex.encoding = THREE.sRGBEncoding;
-            tourTextureCache[roomType] = fbTex;
+            tourTextureCache[cacheKey] = fbTex;
             if (callback) callback(fbTex);
           });
         }
