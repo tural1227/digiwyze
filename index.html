@@ -271,6 +271,14 @@
       transform: scale(1.06);
     }
 
+    .floor-btn.hover-highlight {
+      border-color: #facc15;
+      background: rgba(250, 204, 21, 0.22);
+      color: #fef08a;
+      box-shadow: 0 0 14px rgba(250, 204, 21, 0.5);
+      transform: scale(1.08);
+    }
+
     .floor-btn.all-floors {
       height: 32px;
       font-size: 10px;
@@ -1970,19 +1978,19 @@
     const DEFAULT_APARTMENTS = generateInitialApartments();
 
     function getApartments() {
-      const stored = localStorage.getItem('digiwyze_apartments_v1') || localStorage.getItem('torre_apartments_v2');
+      const stored = localStorage.getItem('digiwyze_apartments_v2');
       if (stored) {
         try {
           const parsed = JSON.parse(stored);
           if (parsed && parsed.length >= 50) return parsed;
         } catch (e) {}
       }
-      localStorage.setItem('digiwyze_apartments_v1', JSON.stringify(DEFAULT_APARTMENTS));
+      localStorage.setItem('digiwyze_apartments_v2', JSON.stringify(DEFAULT_APARTMENTS));
       return DEFAULT_APARTMENTS;
     }
 
     function saveApartments(data) {
-      localStorage.setItem('digiwyze_apartments_v1', JSON.stringify(data));
+      localStorage.setItem('digiwyze_apartments_v2', JSON.stringify(data));
       updateUIWithData();
     }
 
@@ -2087,25 +2095,46 @@
       renderer.domElement.addEventListener('pointerup', (e) => {
         const dist = Math.hypot(e.clientX - pointerDownPos.x, e.clientY - pointerDownPos.y);
         const duration = Date.now() - pointerDownPos.time;
-        // If user dragged more than 6px or held longer than 600ms, it was a camera rotate/pan; ignore!
-        if (dist > 6 || duration > 600) return;
+        // If user dragged more than 16px or held longer than 750ms, it was an orbit/pan drag
+        if (dist > 16 || duration > 750) return;
 
         const isPlanOpen = document.getElementById('plan-view-modal')?.style.display === 'flex';
         const isAdminOpen = document.getElementById('admin-modal')?.style.display === 'flex';
         const isInquiryOpen = document.getElementById('inquiry-modal')?.style.display === 'flex';
         if (isTourActive || isPlanOpen || isAdminOpen || isInquiryOpen) return;
 
-        // Intentional single click on the 3D building: select floor cleanly
-        if (currentHoveredFloorNum !== null) {
-          selectFloor(currentHoveredFloorNum);
+        // Perform raycast directly at pointer coordinates for 100% precision
+        const container = document.getElementById('canvas-container');
+        const rect = container.getBoundingClientRect();
+        floorMouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+        floorMouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+
+        floorRaycaster.setFromCamera(floorMouse, camera);
+        const intersects = floorRaycaster.intersectObjects(floorHitboxes);
+
+        let clickedFloor = null;
+        if (intersects.length > 0) {
+          clickedFloor = intersects[0].object.userData.floor;
+        } else if (currentHoveredFloorNum !== null) {
+          clickedFloor = currentHoveredFloorNum;
+        }
+
+        // Single click on a floor: IMMEDIATELY ENTERS INSIDE THE 2D FLOOR PLAN!
+        if (clickedFloor) {
+          enterFloor(clickedFloor);
         }
       });
 
-      // Double-click directly enters inside the 2D floor plan
+      // Double-click also guarantees entering the floor plan
       renderer.domElement.addEventListener('dblclick', (e) => {
-        if (currentHoveredFloorNum !== null) {
-          enterFloor(currentHoveredFloorNum);
-        }
+        const container = document.getElementById('canvas-container');
+        const rect = container.getBoundingClientRect();
+        floorMouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+        floorMouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+        floorRaycaster.setFromCamera(floorMouse, camera);
+        const intersects = floorRaycaster.intersectObjects(floorHitboxes);
+        const f = (intersects.length > 0) ? intersects[0].object.userData.floor : currentHoveredFloorNum;
+        if (f) enterFloor(f);
       });
 
       // Natural Sunny Day Lighting
@@ -2228,10 +2257,14 @@
             // Create interactive yellow hover hitboxes around the residential tower floors
             createFloorHitboxes(currentBuildingBounds);
 
-            // Close-up hero framing right in front of the Torre Garten building
+            // Close-up hero framing right in front of the DIGIWYZE building
             controls.target.set(0, finalSize.y * 0.42, 0);
             camera.position.set(finalSize.x * 0.72, finalSize.y * 0.52, finalSize.z * 1.15);
             controls.update();
+
+            if (selectedFloor > 0) {
+              highlightFloorYellow(selectedFloor);
+            }
 
             showToast('DIGIWYZE 3D Modeli uğurla yükləndi!');
           },
@@ -2247,14 +2280,16 @@
         );
       }
 
-      // 1. Try Torre Garten GLB first (user's requested model)
-      tryLoad('torre_garten.glb', () => {
-        // 2. Try optimized GLB
-        tryLoad('building_optimized.glb', () => {
-          // 3. Try raw original GLB
-          tryLoad('apartment building 3d model.glb', () => {
-            indicator.style.display = 'none';
-            showToast('3D Model yüklənərkən xəta baş verdi.');
+      // 1. Try DIGIWYZE GLB first
+      tryLoad('digiwyze_building.glb', () => {
+        tryLoad('torre_garten.glb', () => {
+          // 2. Try optimized GLB
+          tryLoad('building_optimized.glb', () => {
+            // 3. Try raw original GLB
+            tryLoad('apartment building 3d model.glb', () => {
+              indicator.style.display = 'none';
+              showToast('3D Model yüklənərkən xəta baş verdi.');
+            });
           });
         });
       });
@@ -2365,35 +2400,56 @@
         if (currentHoveredFloorNum !== f) {
           currentHoveredFloorNum = f;
           highlightFloorYellow(f);
+
+          // Real-time update of floating badge on right so it always matches the hovered yellow floor!
+          const badgeTitle = document.getElementById('badge-floor-title');
+          if (badgeTitle) badgeTitle.innerText = `Mərtəbə ${f}`;
+          renderBadgeApartments(f);
+
+          // Highlight corresponding button in left floor selector
+          document.querySelectorAll('.floor-btn').forEach(btn => {
+            const bf = parseInt(btn.getAttribute('data-floor'));
+            if (bf === f) btn.classList.add('hover-highlight');
+            else btn.classList.remove('hover-highlight');
+          });
         }
 
         tooltip.style.display = 'block';
         tooltip.style.left = (e.clientX + 16) + 'px';
         tooltip.style.top = (e.clientY + 16) + 'px';
-        tooltip.innerHTML = `<strong>🏢 Mərtəbə ${f}</strong> • İçinə girmək üçün klikləyin ➔`;
+        tooltip.innerHTML = `<strong>🏢 Mərtəbə ${f}</strong> • Daxil olmaq üçün bir kliklə vurun ➔`;
         document.body.style.cursor = 'pointer';
       } else {
         if (currentHoveredFloorNum !== null) {
           currentHoveredFloorNum = null;
-          clearFloorYellow();
+          document.querySelectorAll('.floor-btn').forEach(btn => btn.classList.remove('hover-highlight'));
           tooltip.style.display = 'none';
           document.body.style.cursor = 'default';
+
+          // Restore persistent selection
+          if (selectedFloor > 0) {
+            highlightFloorYellow(selectedFloor);
+            const badgeTitle = document.getElementById('badge-floor-title');
+            if (badgeTitle) badgeTitle.innerText = `Mərtəbə ${selectedFloor}`;
+            renderBadgeApartments(selectedFloor);
+          } else {
+            clearFloorYellow();
+          }
         }
       }
     });
 
     function enterFloor(floorNum) {
       if (!floorNum) return;
-      selectFloor(floorNum);
+      const f = parseInt(floorNum);
+      selectFloor(f);
 
       const tooltip = document.getElementById('floor-hover-tooltip');
       if (tooltip) tooltip.style.display = 'none';
 
-      // Smoothly transition right inside the floor plan
-      setTimeout(() => {
-        switchMainView('2d');
-        update2DPlanView(floorNum);
-      }, 350);
+      // Open the 2D architectural plan immediately with 0 delay
+      switchMainView('2d');
+      update2DPlanView(f);
     }
 
     // Smooth Zoom In / Zoom Out controls
@@ -2420,7 +2476,12 @@
       clearFloorYellow();
       const tooltip = document.getElementById('floor-hover-tooltip');
       if (tooltip) tooltip.style.display = 'none';
-      if (selectedFloor > 0) highlightFloorYellow(selectedFloor);
+      if (selectedFloor > 0) {
+        highlightFloorYellow(selectedFloor);
+        const badgeTitle = document.getElementById('badge-floor-title');
+        if (badgeTitle) badgeTitle.innerText = `Mərtəbə ${selectedFloor}`;
+        renderBadgeApartments(selectedFloor);
+      }
     }
 
     // Keyboard shortcuts for Modal Closing and 360 Tour Walking
@@ -2518,13 +2579,25 @@
           btn.className = `floor-btn ${f === selectedFloor ? 'active' : ''}`;
           btn.setAttribute('data-floor', f);
           btn.onclick = () => selectFloor(f);
+          btn.ondblclick = () => enterFloor(f);
           const tag = f === 14 ? 'PNT' : (f === 13 ? 'VIP' : (f === 1 ? 'LOB' : 'MƏR'));
           btn.innerHTML = `${f}<span>${tag}</span>`;
-          btn.addEventListener('mouseenter', () => highlightFloorYellow(f));
+          btn.addEventListener('mouseenter', () => {
+            highlightFloorYellow(f);
+            const badgeTitle = document.getElementById('badge-floor-title');
+            if (badgeTitle) badgeTitle.innerText = `Mərtəbə ${f}`;
+            renderBadgeApartments(f);
+          });
           btn.addEventListener('mouseleave', () => {
             if (currentHoveredFloorNum === null) {
-              if (selectedFloor > 0) highlightFloorYellow(selectedFloor);
-              else clearFloorYellow();
+              if (selectedFloor > 0) {
+                highlightFloorYellow(selectedFloor);
+                const badgeTitle = document.getElementById('badge-floor-title');
+                if (badgeTitle) badgeTitle.innerText = `Mərtəbə ${selectedFloor}`;
+                renderBadgeApartments(selectedFloor);
+              } else {
+                clearFloorYellow();
+              }
             }
           });
           container.appendChild(btn);
@@ -2682,8 +2755,10 @@
           new THREE.Vector3(currentBuildingBounds.w * 0.72, floorY + 2.5, currentBuildingBounds.d * 1.05),
           new THREE.Vector3(currentBuildingBounds.cx, floorY, currentBuildingBounds.cz)
         );
-        document.getElementById('floor-badge').style.display = 'block';
-        document.getElementById('badge-floor-title').innerText = `Mərtəbə ${floorNum}`;
+        const floorBadge = document.getElementById('floor-badge');
+        if (floorBadge) floorBadge.style.display = 'block';
+        const badgeTitle = document.getElementById('badge-floor-title');
+        if (badgeTitle) badgeTitle.innerText = `Mərtəbə ${floorNum}`;
         renderBadgeApartments(floorNum);
       } else {
         clearFloorYellow();
@@ -2691,7 +2766,8 @@
           new THREE.Vector3(currentBuildingBounds.w * 0.95, currentBuildingBounds.h * 0.7, currentBuildingBounds.d * 1.3),
           new THREE.Vector3(currentBuildingBounds.cx, currentBuildingBounds.h * 0.4, currentBuildingBounds.cz)
         );
-        document.getElementById('floor-badge').style.display = 'none';
+        const floorBadge = document.getElementById('floor-badge');
+        if (floorBadge) floorBadge.style.display = 'none';
       }
 
       // Update 2D Floor Plan Data
@@ -2760,8 +2836,8 @@
     // ==========================================
 
     function selectApartmentSector(suffix) {
-      const floor = selectedFloor > 0 ? selectedFloor : 3;
-      const aptNum = `${floor}${suffix}`;
+      const f = selectedFloor > 0 ? selectedFloor : 3;
+      const aptNum = `${f}${suffix}`;
       selectApartmentByCode(aptNum);
 
       // Auto-highlight living room in this apartment
@@ -2772,8 +2848,8 @@
     }
 
     function selectRoom(el, aptSuffix, roomKey, roomTitle, roomArea) {
-      const floor = selectedFloor > 0 ? selectedFloor : 3;
-      const aptNum = `${floor}${aptSuffix}`;
+      const f = selectedFloor > 0 ? selectedFloor : 3;
+      const aptNum = `${f}${aptSuffix}`;
 
       // Visual highlight for the clicked room
       document.querySelectorAll('.svg-room-zone').forEach(z => z.classList.remove('active'));
@@ -2801,12 +2877,17 @@
     }
 
     function update2DPlanView(floorNum) {
-      document.getElementById('plan-modal-title').innerText = `Mərtəbə ${floorNum} — Memarlıq və Mənzil Planı`;
+      const f = parseInt(floorNum) || 3;
+      selectedFloor = f;
+
+      const titleEl = document.getElementById('plan-modal-title');
+      if (titleEl) titleEl.innerText = `Mərtəbə ${f} — Memarlıq və Mənzil Planı`;
+
       const planSelect = document.getElementById('plan-floor-select');
-      if (planSelect && planSelect.value != floorNum) {
-        planSelect.value = floorNum;
+      if (planSelect && parseInt(planSelect.value) !== f) {
+        planSelect.value = f;
       }
-      const floorApts = apartments.filter(a => a.floor === floorNum);
+      const floorApts = apartments.filter(a => a.floor === f);
 
       // Populate Apartment Selector Pills in Floor Plan Header
       const pillsContainer = document.getElementById('plan-apt-pills');
@@ -2836,8 +2917,8 @@
 
         if (titleEl && apt) {
           titleEl.textContent = `Mənzil ${apt.number}`;
-          metaEl.textContent = `• ${apt.rooms} Otaq • ${apt.area} m²`;
-          priceEl.textContent = `${formatMoney(apt.price)} AZN`;
+          if (metaEl) metaEl.textContent = `• ${apt.rooms} Otaq • ${apt.area} m²`;
+          if (priceEl) priceEl.textContent = `${formatMoney(apt.price)} AZN`;
 
           // Zone border color based on status
           const rect = zoneEl ? zoneEl.querySelector('rect') : null;
@@ -2854,11 +2935,14 @@
       });
 
       // Default select first apartment & its living room safely
+      const targetApt = floorApts[0] || apartments.find(a => a.floor === f);
+      if (targetApt) {
+        selectApartmentByCode(targetApt.number);
+      }
+
       const firstRoom = document.querySelector('.svg-room-zone[data-apt="01"][data-room-key="living"]');
       if (firstRoom) {
         selectRoom(firstRoom, '01', 'living', 'Qonaq Otağı', 28.5);
-      } else if (floorApts.length > 0) {
-        selectApartmentByCode(floorApts[0].number);
       }
     }
 
@@ -2878,16 +2962,25 @@
       });
 
       // Update Sidebar Card
-      document.getElementById('side-apt-num').innerText = `Mənzil ${apt.number}`;
-      document.getElementById('side-apt-subtitle').innerText = `Mərtəbə ${apt.floor} • Şəhər və Dəniz Panoraması`;
-      document.getElementById('side-price').innerText = `${formatMoney(apt.price)} AZN`;
-      document.getElementById('side-price-m2').innerText = `1 m² = ${formatMoney(Math.round(apt.price / apt.area))} AZN`;
-      document.getElementById('side-area').innerText = `${apt.area} m²`;
-      document.getElementById('side-rooms').innerText = `${apt.rooms} Otaqlı`;
-
+      const sideAptNum = document.getElementById('side-apt-num');
+      const sideAptSubtitle = document.getElementById('side-apt-subtitle');
+      const sidePrice = document.getElementById('side-price');
+      const sidePriceM2 = document.getElementById('side-price-m2');
+      const sideArea = document.getElementById('side-area');
+      const sideRooms = document.getElementById('side-rooms');
       const pill = document.getElementById('side-status-pill');
-      pill.className = `status-pill status-${apt.status}`;
-      pill.innerText = apt.status === 'available' ? 'Satışda' : (apt.status === 'reserved' ? 'Rezervdə' : 'Satılıb');
+
+      if (sideAptNum) sideAptNum.innerText = `Mənzil ${apt.number}`;
+      if (sideAptSubtitle) sideAptSubtitle.innerText = `Mərtəbə ${apt.floor} • Şəhər və Dəniz Panoraması`;
+      if (sidePrice) sidePrice.innerText = `${formatMoney(apt.price)} AZN`;
+      if (sidePriceM2) sidePriceM2.innerText = `1 m² = ${formatMoney(Math.round(apt.price / apt.area))} AZN`;
+      if (sideArea) sideArea.innerText = `${apt.area} m²`;
+      if (sideRooms) sideRooms.innerText = `${apt.rooms} Otaqlı`;
+
+      if (pill) {
+        pill.className = `status-pill status-${apt.status}`;
+        pill.innerText = apt.status === 'available' ? 'Satışda' : (apt.status === 'reserved' ? 'Rezervdə' : 'Satılıb');
+      }
     }
 
     // ==========================================
