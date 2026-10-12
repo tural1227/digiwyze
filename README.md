@@ -1,33 +1,35 @@
-# 🏢 Torre Garten — Premium Real Estate & 360° Virtual Tour Platform
+# 🏢 DIGIWYZE — Digital Residential Twin & 360° Virtual Tour Platform
 
-Torre Garten — 14 mərtəbəli premium yaşayış kompleksi üçün hazırlanmış interaktiv 3D bina baxışı, 2D memarlıq mərtəbə planı və 8K Ultra-HD 360° virtual tur platforması.
+**DIGIWYZE** — 14 mərtəbəli premium yaşayış kompleksi üçün hazırlanmış interaktiv 3D rəqəmsal əkiz, Digiwyze mənzil filtrləmə sistemi, 2D memarlıq mərtəbə planı və 8K Ultra-HD 360° gəzinti virtual tur platforması.
 
-🌐 **Canlı Demo (Live Website)**: [https://tural1227.github.io/torre-garten/](https://tural1227.github.io/torre-garten/)
+🌐 **Canlı Demo (Live Website)**: [https://tural1227.github.io/digiwyze/](https://tural1227.github.io/digiwyze/)
 
-![Torre Garten Preview](torre_preview.png)
+![DIGIWYZE Preview](optimized_preview.png)
 
 ---
 
 ## ✨ Əsas Xüsusiyyətlər
 
-- **3D Realist Model (Torre Garten)**: 
+- **Digiwyze 3D Rəqəmsal Əkiz**: 
   - 14 müstəqil yaşayış mərtəbəsi və 56 lüks mənzil.
-  - Günəş və təbii işıqlandırma, ACESFilmic ton tonlaması, fotorealist səma inikası.
-  - Gecə və gündüz rejimləri, kinematik dron uçuşu və 360° orbit nəzarəti.
+  - Ağıllı Otaq və Satış Filtri (1, 2, 3, 4 otaqlı və satışda olan mənzillər).
+  - Təbii işıqlandırma, ACESFilmic ton tonlaması, fotorealist səma inikası.
+  - İnteraktiv Zoom In (+) və Zoom Out (-) idarəetməsi, kinematik dron uçuşu və 360° orbit nəzarəti.
 - **İnteraktiv İşıqlanan Mərtəbələr**:
   - Binada mərtəbələrin üzərinə gəldikdə parlaq qızılı-sarı işıqlanma.
-  - Mərtəbəyə kliklədikdə fasaddan birbaşa içəri hamar kamera uçuşu və 2D memarlıq planına keçid.
+  - Tək kliklə məlumat kartı, iki dəfə kliklə və ya düymə ilə 2D memarlıq planına keçid.
 - **2D Memarlıq CAD Planı**: 
-  - Hər bir otaq (Qonaq otağı, Master yataq, Mətbəx, Sanuzel, Eyvanlar) fərdi olaraq seçilə və vurğulana bilir.
-  - Otaq adları və kvadrat metrləri yüksək kontrastlı həblərdə toqquşmasız yerləşdirilib.
-  - Plan daxilindən birbaşa 14 mərtəbə arasında naviqasiya və mebellər / CAD çertyoj qatı açarı.
-- **8K Ultra-HD 360° Virtual Tur**:
+  - Hər bir otaq fərdi olaraq seçilə və interaktiv vurğulana bilir.
+  - 4 mənzil üçün birbaşa plan daxilində sürətli seçim həbləri (Apartment Selector Pills).
+  - Rahat çıxış düyməsi və ESC klaviatura dəstəyi ilə 3D-yə qayıdış.
+- **8K Ultra-HD 360° Virtual Tur və İnteraktiv Otaq Gəzintisi**:
   - Orijinal büllur kimi aydın 8K panoramalar (Qonaq zalı, Master yataq, Şöminə zalı, En-Suite vanna, Panoramik terras süiti).
-  - Otaqlar arası interaktiv 3D qapı keçidləri (`🚪 Qapıdan Keç`).
-  - Real-vaxtda istifadəçinin baxış bucağını göstərən dinamik mini-radar xəritəsi.
-  - Avto-tur və tam ekran rejimləri.
+  - **Otaq daxilində irəli və geri addımlama (Walkthrough)**: W / S düymələri, oxlar və ekrandakı "İrəli / Geri" düymələri ilə real gəzinti.
+  - **Otaqlar arası ani keçid**: Yaddaşda keşlənmiş teksturalarla 0 gecikmə ilə keçid.
+  - Qapılarda interaktiv 3D keçid nöqtələri (`🚪 Qapıdan Keç`).
+  - Real-vaxtda baxış bucağını göstərən dinamik mini-radar xəritəsi.
 - **İnzibatçı Paneli (Admin CRM)**:
-  - Mənzillərin qiymətini, sahəsini və satış/rezerv statusunu idarə etmək üçün tam panel.
+  - Mənzillərin qiymətini, sahəsini və statusunu real vaxtda redaktə etmək.
   - Müştəri sorğuları və rezervasiya idarəetməsi.
   - Satış statistikası və dövriyyə hesabatı.
 
@@ -35,7 +37,7 @@ Torre Garten — 14 mərtəbəli premium yaşayış kompleksi üçün hazırlanm
 
 ## 🛠️ İstifadə Edilmiş Texnologiyalar
 
-- **Three.js & GLTFLoader**: 3D model renderi, kölgələr, ACESFilmic ton xəritələnməsi və 360° ekvirektangular sfera.
+- **Three.js & GLTFLoader**: 3D bina renderi, kölgələr, ACESFilmic ton xəritələnməsi və 360° ekvirektangular sfera.
 - **OrbitControls**: İnteraktiv kamera manipulyasiyası və hədəf fokuslanması.
 - **Lucide Icons**: İnterfeys ikonları.
 - **SVG & Canvas**: Memarlıq CAD çertyoju, otaq zonalanması və real-vaxt radarı.
