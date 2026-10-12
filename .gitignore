@@ -1,0 +1,15 @@
+# Temporary & cache
+edge_temp/
+*.zip
+__pycache__/
+*.log
+.DS_Store
+Thumbs.db
+
+# Large redundant original asset (project uses torre_garten.glb and building_optimized.glb)
+apartment building 3d model.glb
+
+# Test and verification artifacts
+playwright_*.png
+verify_*.png
+edge_headless_*.png

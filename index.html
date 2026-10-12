@@ -1,0 +1,3135 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Torre Garten — 14 Mərtəbəli Premium Yaşayış Kompleksi & 360° Virtual Tur</title>
+  
+  <!-- Google Fonts & Tailwind CDN -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Local Three.js, OrbitControls, GLTFLoader and Lucide (100% Offline & Instant) -->
+  <script src="three.min.js"></script>
+  <script src="OrbitControls.js"></script>
+  <script src="GLTFLoader.js"></script>
+  <script src="lucide.min.js"></script>
+
+  <style>
+    :root {
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --accent: #38bdf8;
+      --bg-dark: #090d16;
+      --panel-bg: rgba(15, 23, 42, 0.85);
+      --panel-border: rgba(255, 255, 255, 0.12);
+      --card-bg: rgba(30, 41, 59, 0.7);
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --status-available: #10b981;
+      --status-reserved: #f59e0b;
+      --status-sold: #ef4444;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      user-select: none;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      overflow: hidden;
+      height: 100vh;
+      width: 100vw;
+    }
+
+    /* 3D Canvas Container */
+    #canvas-container {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+    }
+
+    /* Header Bar */
+    header {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 50;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 28px;
+      background: linear-gradient(180deg, rgba(9, 13, 22, 0.95) 0%, rgba(9, 13, 22, 0) 100%);
+      pointer-events: none;
+    }
+
+    .brand-section {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      pointer-events: auto;
+    }
+
+    .brand-logo {
+      width: 44px;
+      height: 44px;
+      background: linear-gradient(135deg, #2563eb 0%, #38bdf8 100%);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 20px rgba(56, 189, 248, 0.4);
+      color: white;
+      font-weight: 800;
+      font-size: 20px;
+    }
+
+    .brand-title h1 {
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      background: linear-gradient(90deg, #ffffff, #94a3b8);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .brand-title p {
+      font-size: 12px;
+      color: var(--accent);
+      font-weight: 500;
+    }
+
+    .nav-tabs {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--panel-bg);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--panel-border);
+      padding: 6px;
+      border-radius: 30px;
+      pointer-events: auto;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+    }
+
+    .nav-btn {
+      padding: 8px 18px;
+      border-radius: 20px;
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.25s ease;
+    }
+
+    .nav-btn.active, .nav-btn:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: #fff;
+    }
+
+    .nav-btn.active {
+      background: var(--primary);
+      color: #fff;
+      box-shadow: 0 4px 14px rgba(37, 99, 235, 0.4);
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      pointer-events: auto;
+    }
+
+    .action-btn {
+      padding: 9px 18px;
+      border-radius: 24px;
+      border: 1px solid var(--panel-border);
+      background: var(--panel-bg);
+      color: white;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      backdrop-filter: blur(12px);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s ease;
+    }
+
+    .action-btn:hover {
+      background: rgba(255, 255, 255, 0.15);
+      border-color: rgba(255, 255, 255, 0.3);
+      transform: translateY(-1px);
+    }
+
+    .btn-admin {
+      background: linear-gradient(135deg, rgba(234, 88, 12, 0.2), rgba(249, 115, 22, 0.4));
+      border-color: rgba(249, 115, 22, 0.5);
+      color: #fdba74;
+    }
+    .btn-admin:hover {
+      background: rgba(249, 115, 22, 0.5);
+      color: #fff;
+    }
+
+    /* Left Side: Floor Navigation Bar */
+    .floor-selector {
+      position: absolute;
+      left: 24px;
+      top: 50%;
+      transform: translateY(-50%);
+      z-index: 20;
+      display: flex;
+      flex-direction: column;
+      background: var(--panel-bg);
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--panel-border);
+      padding: 12px 8px;
+      border-radius: 20px;
+      box-shadow: 0 16px 36px rgba(0, 0, 0, 0.5);
+      max-height: 85vh;
+    }
+
+    .floor-selector-title {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+      text-align: center;
+      margin-bottom: 6px;
+    }
+
+    .floor-btn-list {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      overflow-y: auto;
+      max-height: 68vh;
+      padding-right: 2px;
+    }
+    .floor-btn-list::-webkit-scrollbar {
+      width: 4px;
+    }
+    .floor-btn-list::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 4px;
+    }
+
+    .floor-btn {
+      width: 40px;
+      height: 36px;
+      border-radius: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: rgba(255, 255, 255, 0.04);
+      color: var(--text-muted);
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+    }
+
+    .floor-btn span {
+      font-size: 8px;
+      font-weight: 600;
+      opacity: 0.7;
+      line-height: 1;
+    }
+
+    .floor-btn:hover {
+      background: rgba(56, 189, 248, 0.15);
+      color: var(--accent);
+      border-color: rgba(56, 189, 248, 0.4);
+      transform: scale(1.05);
+    }
+
+    .floor-btn.active {
+      background: linear-gradient(135deg, #2563eb, #38bdf8);
+      color: #ffffff;
+      border-color: transparent;
+      box-shadow: 0 0 16px rgba(56, 189, 248, 0.5);
+      transform: scale(1.06);
+    }
+
+    .floor-btn.all-floors {
+      height: 32px;
+      font-size: 10px;
+      margin-top: 6px;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    /* Bottom Control Bar */
+    .bottom-bar {
+      position: absolute;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 20;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: var(--panel-bg);
+      backdrop-filter: blur(18px);
+      border: 1px solid var(--panel-border);
+      padding: 8px 16px;
+      border-radius: 40px;
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
+    }
+
+    .control-btn {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(255, 255, 255, 0.05);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .control-btn:hover {
+      background: rgba(255, 255, 255, 0.15);
+      transform: scale(1.08);
+    }
+    .control-btn.active {
+      background: var(--primary);
+      border-color: var(--accent);
+    }
+
+    .legend-container {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-left: 12px;
+      padding-left: 14px;
+      border-left: 1px solid rgba(255, 255, 255, 0.12);
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    .legend-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+    }
+    .dot-avail { background: var(--status-available); box-shadow: 0 0 8px var(--status-available); }
+    .dot-res { background: var(--status-reserved); box-shadow: 0 0 8px var(--status-reserved); }
+    .dot-sold { background: var(--status-sold); box-shadow: 0 0 8px var(--status-sold); }
+
+    /* Floating Floor Info Badge in 3D View */
+    .floor-floating-badge {
+      position: absolute;
+      right: 28px;
+      top: 90px;
+      z-index: 20;
+      background: var(--panel-bg);
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--panel-border);
+      padding: 16px 20px;
+      border-radius: 20px;
+      width: 280px;
+      box-shadow: 0 16px 36px rgba(0,0,0,0.4);
+      animation: fadeIn 0.3s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .badge-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+    .badge-header h3 {
+      font-size: 16px;
+      font-weight: 700;
+    }
+    .badge-sub {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .mini-apartment-list {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .mini-apt-card {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      padding: 10px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .mini-apt-card:hover {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: var(--accent);
+      transform: translateY(-2px);
+    }
+    .mini-apt-num {
+      font-size: 13px;
+      font-weight: 700;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .mini-apt-meta {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    .status-pill {
+      display: inline-block;
+      padding: 2px 7px;
+      border-radius: 10px;
+      font-size: 10px;
+      font-weight: 700;
+    }
+    .status-available { background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); }
+    .status-reserved { background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3); }
+    .status-sold { background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); }
+
+    /* 2D Plan View Modal */
+    #plan-view-modal {
+      position: absolute;
+      top: 76px;
+      left: 0;
+      width: 100%;
+      height: calc(100% - 76px);
+      z-index: 30;
+      background: rgba(6, 9, 16, 0.94);
+      backdrop-filter: blur(24px);
+      display: none;
+      flex-direction: column;
+      padding: 16px 28px 24px 28px;
+      overflow: hidden;
+    }
+
+    .plan-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+
+    .plan-body {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 1fr 380px;
+      gap: 24px;
+      height: calc(100% - 70px);
+    }
+
+    .svg-canvas-wrapper {
+      background: radial-gradient(circle at center, rgba(30, 41, 59, 0.5) 0%, rgba(15, 23, 42, 0.8) 100%);
+      border: 1px solid var(--panel-border);
+      border-radius: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    svg.floor-svg {
+      width: 90%;
+      height: 90%;
+      filter: drop-shadow(0 20px 40px rgba(0,0,0,0.6));
+    }
+
+    .svg-apt-zone {
+      cursor: pointer;
+      transition: all 0.3s ease;
+      stroke-width: 2.5;
+    }
+    .svg-apt-zone:hover {
+      filter: brightness(1.25);
+      stroke-width: 4;
+      stroke: #ffffff;
+    }
+
+    .apt-detail-sidebar {
+      background: var(--panel-bg);
+      border: 1px solid var(--panel-border);
+      border-radius: 24px;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+    }
+
+    /* 360 Panorama Tour Modal */
+    #tour-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 80;
+      background: #000;
+      display: none;
+    }
+
+    #tour-canvas-container {
+      width: 100%;
+      height: 100%;
+    }
+
+    .tour-ui-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 24px;
+      z-index: 85;
+    }
+
+    .tour-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      pointer-events: auto;
+      background: rgba(15, 23, 42, 0.7);
+      backdrop-filter: blur(14px);
+      padding: 12px 20px;
+      border-radius: 30px;
+      border: 1px solid var(--panel-border);
+      width: fit-content;
+    }
+
+    .tour-room-selector {
+      align-self: center;
+      pointer-events: auto;
+      display: flex;
+      gap: 10px;
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--panel-border);
+      padding: 8px 14px;
+      border-radius: 30px;
+    }
+
+    .room-btn {
+      padding: 8px 16px;
+      border-radius: 20px;
+      border: none;
+      background: rgba(255, 255, 255, 0.08);
+      color: #cbd5e1;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .room-btn.active, .room-btn:hover {
+      background: var(--primary);
+      color: #fff;
+    }
+
+    /* 360 Interactive Doorway Hotspots */
+    .door-hotspot {
+      position: absolute;
+      top: 0;
+      left: 0;
+      z-index: 82;
+      pointer-events: auto;
+      cursor: pointer;
+      display: none;
+      align-items: center;
+      gap: 10px;
+      background: rgba(15, 23, 42, 0.88);
+      backdrop-filter: blur(18px);
+      border: 1.5px solid rgba(56, 189, 248, 0.65);
+      padding: 10px 18px;
+      border-radius: 40px;
+      color: #fff;
+      box-shadow: 0 0 25px rgba(56, 189, 248, 0.4), inset 0 0 12px rgba(56, 189, 248, 0.2);
+      transition: transform 0.15s ease, background 0.2s, box-shadow 0.2s, border-color 0.2s;
+      animation: hotspotPulse 2.5s infinite;
+      white-space: nowrap;
+    }
+    .door-hotspot:hover {
+      background: rgba(37, 99, 235, 0.95);
+      border-color: #ffffff;
+      transform: translate(-50%, -50%) scale(1.12) !important;
+      box-shadow: 0 0 35px rgba(56, 189, 248, 0.85);
+    }
+    .hotspot-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #2563eb, #38bdf8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      box-shadow: 0 0 12px rgba(56, 189, 248, 0.6);
+    }
+    .hotspot-title {
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+    }
+    .hotspot-sub {
+      font-size: 10px;
+      color: #94a3b8;
+    }
+    @keyframes hotspotPulse {
+      0%, 100% { box-shadow: 0 0 16px rgba(56, 189, 248, 0.35); }
+      50% { box-shadow: 0 0 32px rgba(56, 189, 248, 0.75); }
+    }
+
+    #tour-transition-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: #090d16;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.35s ease;
+      z-index: 83;
+    }
+
+    /* CAD Architectural Blueprint Styling */
+    .cad-wall-outer { fill: #0b1120; stroke: #94a3b8; stroke-width: 4; }
+    .cad-wall-inner { stroke: #64748b; stroke-width: 2.5; stroke-linecap: round; }
+    .cad-door-arc { fill: none; stroke: #38bdf8; stroke-width: 1.5; stroke-dasharray: 4,3; }
+    .cad-door-leaf { stroke: #38bdf8; stroke-width: 2.2; }
+    .cad-furniture { fill: rgba(255,255,255,0.04); stroke: rgba(255,255,255,0.22); stroke-width: 1.2; transition: opacity 0.3s; }
+    #plan-svg-elem.hide-furniture .cad-furniture { opacity: 0; pointer-events: none; }
+    .cad-glass { stroke: #38bdf8; stroke-width: 2.2; stroke-dasharray: 6,3; }
+    .cad-core { fill: #0d1527; stroke: #475569; stroke-width: 2.5; }
+    .cad-stair-step { stroke: #64748b; stroke-width: 1.2; }
+    .cad-dim-line { stroke: rgba(148, 163, 184, 0.4); stroke-width: 1; stroke-dasharray: 3,3; }
+    .cad-dim-text { fill: rgba(148, 163, 184, 0.7); font-size: 9px; font-family: monospace; }
+
+    /* 360 Tour Floor Plan Mini-Radar */
+    .tour-radar-card {
+      position: absolute;
+      bottom: 28px;
+      left: 28px;
+      z-index: 86;
+      pointer-events: auto;
+      background: rgba(15, 23, 42, 0.88);
+      backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 18px;
+      padding: 12px;
+      box-shadow: 0 16px 36px rgba(0, 0, 0, 0.5);
+      width: 210px;
+      transition: transform 0.2s ease;
+    }
+    .radar-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--accent);
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .radar-svg {
+      width: 100%;
+      height: 125px;
+      border-radius: 10px;
+      background: rgba(8, 14, 26, 0.7);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      display: block;
+    }
+    .radar-room {
+      cursor: pointer;
+      fill: rgba(30, 41, 59, 0.6);
+      stroke: rgba(148, 163, 184, 0.4);
+      stroke-width: 1;
+      transition: all 0.2s;
+    }
+    .radar-room:hover {
+      fill: rgba(56, 189, 248, 0.3);
+      stroke: #38bdf8;
+    }
+    .radar-room.active {
+      fill: rgba(16, 185, 129, 0.35);
+      stroke: #10b981;
+      stroke-width: 1.5;
+    }
+    .radar-user-dot {
+      fill: #38bdf8;
+      filter: drop-shadow(0 0 6px #38bdf8);
+    }
+    .radar-view-cone {
+      fill: rgba(56, 189, 248, 0.3);
+      stroke: rgba(56, 189, 248, 0.7);
+      stroke-width: 1;
+      transform-origin: 0 0;
+    }
+
+    /* SVG Room Zones & Individual Room Selection */
+    .svg-room-zone {
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .svg-room-zone .room-rect {
+      fill: rgba(15, 23, 42, 0.4);
+      stroke: #475569;
+      stroke-width: 1.5;
+      transition: all 0.2s ease;
+    }
+    .svg-room-zone:hover .room-rect {
+      fill: rgba(56, 189, 248, 0.25);
+      stroke: #38bdf8;
+      stroke-width: 2.5;
+      filter: drop-shadow(0 0 10px rgba(56, 189, 248, 0.5));
+    }
+    .svg-room-zone.active .room-rect {
+      fill: rgba(16, 185, 129, 0.35);
+      stroke: #10b981;
+      stroke-width: 3;
+      filter: drop-shadow(0 0 14px rgba(16, 185, 129, 0.8));
+    }
+    .room-badge-pill {
+      fill: rgba(15, 23, 42, 0.92);
+      stroke: rgba(255, 255, 255, 0.15);
+      stroke-width: 1;
+      rx: 6px;
+      transition: all 0.2s;
+    }
+    .svg-room-zone:hover .room-badge-pill {
+      stroke: #38bdf8;
+      fill: rgba(15, 23, 42, 0.98);
+    }
+    .svg-room-zone.active .room-badge-pill {
+      stroke: #10b981;
+      fill: rgba(6, 78, 59, 0.95);
+    }
+    .cad-label-room {
+      fill: #e2e8f0;
+      font-size: 10px;
+      font-weight: 700;
+      text-anchor: middle;
+      pointer-events: none;
+    }
+    .cad-label-area {
+      fill: #38bdf8;
+      font-size: 9px;
+      font-weight: 800;
+      text-anchor: middle;
+      pointer-events: none;
+    }
+    .apt-header-pill {
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+    .apt-header-pill:hover {
+      transform: scale(1.03);
+    }
+
+    /* 3D Floor Hover Floating Tooltip */
+    #floor-hover-tooltip {
+      position: fixed;
+      pointer-events: none;
+      z-index: 100;
+      display: none;
+      background: rgba(15, 23, 42, 0.94);
+      border: 1.5px solid #facc15;
+      box-shadow: 0 10px 30px rgba(234, 179, 8, 0.45);
+      padding: 9px 16px;
+      border-radius: 14px;
+      font-size: 13px;
+      color: #fff;
+      backdrop-filter: blur(16px);
+      white-space: nowrap;
+      transform: translate(0, 0);
+      transition: opacity 0.15s ease;
+    }
+    #floor-hover-tooltip strong {
+      color: #facc15;
+      font-weight: 800;
+      margin-right: 4px;
+    }
+
+    /* Booking & Inquiry Modal */
+    .custom-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 90;
+      background: rgba(5, 8, 15, 0.8);
+      backdrop-filter: blur(12px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal-card {
+      background: #0f172a;
+      border: 1px solid var(--panel-border);
+      border-radius: 24px;
+      width: 90%;
+      max-width: 520px;
+      padding: 28px;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+      animation: modalScale 0.25s ease;
+    }
+
+    @keyframes modalScale {
+      from { transform: scale(0.95); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+
+    /* Admin Panel Drawer */
+    #admin-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 95;
+      background: rgba(5, 8, 15, 0.85);
+      backdrop-filter: blur(16px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .admin-card {
+      background: #0f172a;
+      border: 1px solid var(--panel-border);
+      border-radius: 24px;
+      width: 92%;
+      max-width: 980px;
+      height: 85vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      box-shadow: 0 25px 60px rgba(0,0,0,0.8);
+    }
+
+    .admin-nav {
+      display: flex;
+      gap: 12px;
+      padding: 16px 24px;
+      background: rgba(30, 41, 59, 0.5);
+      border-bottom: 1px solid var(--panel-border);
+    }
+
+    .admin-tab-btn {
+      padding: 8px 16px;
+      border-radius: 12px;
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .admin-tab-btn.active {
+      background: var(--primary);
+      color: #fff;
+    }
+
+    .admin-content {
+      flex: 1;
+      padding: 24px;
+      overflow-y: auto;
+    }
+
+    table.admin-table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 13px;
+    }
+    table.admin-table th {
+      padding: 12px 14px;
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--text-muted);
+      font-weight: 600;
+      border-bottom: 1px solid var(--panel-border);
+    }
+    table.admin-table td {
+      padding: 12px 14px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+    table.admin-table tr:hover {
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    select.admin-select, input.admin-input {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: #fff;
+      padding: 6px 10px;
+      border-radius: 8px;
+      font-size: 13px;
+      outline: none;
+    }
+    select.admin-select:focus, input.admin-input:focus {
+      border-color: var(--accent);
+    }
+
+    /* Toast Notification */
+    #toast-msg {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 100;
+      background: #10b981;
+      color: #fff;
+      padding: 12px 20px;
+      border-radius: 14px;
+      font-weight: 600;
+      box-shadow: 0 10px 30px rgba(16, 185, 129, 0.4);
+      display: none;
+      animation: fadeIn 0.3s;
+    }
+
+    /* Model Loading Indicator */
+    #loading-indicator {
+      position: absolute;
+      bottom: 84px;
+      left: 28px;
+      z-index: 20;
+      background: var(--panel-bg);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--panel-border);
+      padding: 10px 16px;
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+    .spinner {
+      width: 14px;
+      height: 14px;
+      border: 2px solid rgba(255, 255, 255, 0.2);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 3D Canvas -->
+  <div id="canvas-container"></div>
+
+  <!-- 3D Interactive Floor Hover Tooltip -->
+  <div id="floor-hover-tooltip"></div>
+
+  <!-- Header -->
+  <header>
+    <div class="brand-section">
+      <div class="brand-logo">TG</div>
+      <div class="brand-title">
+        <h1>TORRE GARTEN</h1>
+        <p>PREMIUM RESIDENTIAL TOWER • 14 MƏRTƏBƏ • 56 MƏNZİL</p>
+      </div>
+    </div>
+
+    <div class="nav-tabs">
+      <button class="nav-btn active" id="tab-3d" onclick="switchMainView('3d')">
+        <i data-lucide="box" style="width:16px; height:16px;"></i> 3D Bina Baxışı
+      </button>
+      <button class="nav-btn" id="tab-2d" onclick="switchMainView('2d')">
+        <i data-lucide="layers" style="width:16px; height:16px;"></i> 2D Mərtəbə Planı
+      </button>
+      <button class="nav-btn" id="tab-tour" onclick="openTourModal(currentSelectedAptCode || '302')">
+        <i data-lucide="eye" style="width:16px; height:16px;"></i> 360° Virtual Tur
+      </button>
+    </div>
+
+    <div class="header-actions">
+      <button class="action-btn btn-admin" onclick="openAdminModal()">
+        <i data-lucide="settings" style="width:16px; height:16px;"></i> İdarəetmə Paneli
+      </button>
+      <button class="action-btn" onclick="openInquiryModal('Ümumi Sorğu')">
+        <i data-lucide="phone" style="width:16px; height:16px;"></i> Əlaqə & Rezervasiya
+      </button>
+    </div>
+  </header>
+
+  <!-- Left: Floor Selector -->
+  <div class="floor-selector">
+    <div class="floor-selector-title">Mərtəbə</div>
+    <div class="floor-btn-list" id="floor-btn-list"></div>
+    <button class="floor-btn all-floors" data-floor="0" onclick="selectFloor(0)">BÜTÜN</button>
+  </div>
+
+  <!-- Loading State Indicator -->
+  <div id="loading-indicator">
+    <div class="spinner"></div>
+    <span id="loading-text">3D İnteraktiv Model Hazırlanır...</span>
+  </div>
+
+  <!-- Floating Floor Info Badge in 3D View -->
+  <div class="floor-floating-badge" id="floor-badge">
+    <div class="badge-header">
+      <div>
+        <h3 id="badge-floor-title">Mərtəbə 3</h3>
+        <span class="badge-sub">4 Lüks Mənzil</span>
+      </div>
+      <button class="action-btn" style="padding: 6px 12px; font-size:11px; background:var(--primary);" onclick="enterFloor(selectedFloor)">
+        🏢 İçinə Daxil Ol →
+      </button>
+    </div>
+    <div class="mini-apartment-list" id="badge-apt-list">
+      <!-- Generated via JS -->
+    </div>
+  </div>
+
+  <!-- Bottom Control Bar -->
+  <div class="bottom-bar">
+    <button class="control-btn active" title="Binaya Yaxınlaş (Yaxın Plan)" onclick="resetCamera()">
+      <i data-lucide="building-2" style="width:18px; height:18px;"></i>
+    </button>
+    <button class="control-btn" title="Bütün Kompleks & Park Panoraması" onclick="viewOverview()">
+      <i data-lucide="trees" style="width:18px; height:18px;"></i>
+    </button>
+    <button class="control-btn" id="btn-drone" title="Kinematik Dron Uçuşu" onclick="toggleDroneFlyover()">
+      <i data-lucide="video" style="width:18px; height:18px;"></i>
+    </button>
+    <button class="control-btn" id="btn-autorotate" title="Avtomatik Fırlanma" onclick="toggleAutoRotate()">
+      <i data-lucide="refresh-cw" style="width:18px; height:18px;"></i>
+    </button>
+    <button class="control-btn" id="btn-daynight" title="İşıqlandırma Rejimi" onclick="toggleLighting()">
+      <i data-lucide="sun" style="width:18px; height:18px;"></i>
+    </button>
+    <div class="legend-container">
+      <div class="legend-item"><div class="legend-dot dot-avail"></div> Satışda</div>
+      <div class="legend-item"><div class="legend-dot dot-res"></div> Rezervdə</div>
+      <div class="legend-item"><div class="legend-dot dot-sold"></div> Satılıb</div>
+    </div>
+  </div>
+
+  <!-- ================= 2D FLOOR PLAN MODAL ================= -->
+  <div id="plan-view-modal">
+    <div class="plan-header">
+      <div>
+        <h2 id="plan-modal-title" style="font-size:22px; font-weight:700;">Mərtəbə 3 — Memarlıq Planı</h2>
+        <p style="font-size:13px; color:var(--text-muted);">Mənzilin detallarını görmək və 360° tura daxil olmaq üçün plan üzərində otaqlara klikləyin</p>
+      </div>
+      <div style="display:flex; align-items:center; gap:10px;">
+        <!-- Floor Navigator inside Plan Modal -->
+        <div style="display:flex; align-items:center; gap:6px; background:rgba(255,255,255,0.06); padding:4px 10px; border-radius:14px; border:1px solid rgba(255,255,255,0.12);">
+          <button class="action-btn" style="padding:4px 8px; font-size:11px;" onclick="stepPlanFloor(-1)" title="Aşağı Mərtəbə">◀</button>
+          <select id="plan-floor-select" class="admin-select" style="padding:4px 8px; font-weight:700;" onchange="changePlanFloor(this.value)">
+            <!-- 14 down to 1 populated dynamically -->
+          </select>
+          <button class="action-btn" style="padding:4px 8px; font-size:11px;" onclick="stepPlanFloor(1)" title="Yuxarı Mərtəbə">▶</button>
+        </div>
+
+        <!-- Furniture / CAD Layer Toggle -->
+        <button class="action-btn" id="btn-toggle-furniture" onclick="toggleFurnitureLayer()" title="Mebelləri Göstər / Gizlət">
+          <i data-lucide="armchair" style="width:16px; height:16px;"></i> Mebellər
+        </button>
+
+        <button class="action-btn" onclick="switchMainView('3d')">
+          <i data-lucide="x" style="width:16px; height:16px;"></i> Bağla (3D-yə qayıt)
+        </button>
+      </div>
+    </div>
+
+    <div class="plan-body">
+      <!-- SVG Architectural Plan -->
+      <div class="svg-canvas-wrapper">
+        <svg class="floor-svg" viewBox="0 0 1000 680" id="plan-svg-elem">
+          <!-- Background Blueprint Grid & Outer Frame -->
+          <rect x="25" y="25" width="950" height="630" rx="16" fill="#090e17" stroke="#334155" stroke-width="3" />
+          
+          <!-- Blueprint Grid Lines -->
+          <g stroke="rgba(56, 189, 248, 0.04)" stroke-width="1">
+            <line x1="25" y1="100" x2="975" y2="100" />
+            <line x1="25" y1="200" x2="975" y2="200" />
+            <line x1="25" y1="340" x2="975" y2="340" />
+            <line x1="25" y1="480" x2="975" y2="480" />
+            <line x1="25" y1="580" x2="975" y2="580" />
+            <line x1="150" y1="25" x2="150" y2="655" />
+            <line x1="300" y1="25" x2="300" y2="655" />
+            <line x1="430" y1="25" x2="430" y2="655" />
+            <line x1="570" y1="25" x2="570" y2="655" />
+            <line x1="700" y1="25" x2="700" y2="655" />
+            <line x1="850" y1="25" x2="850" y2="655" />
+          </g>
+
+          <!-- North Compass & Scale -->
+          <g transform="translate(935, 55)">
+            <circle cx="0" cy="0" r="16" fill="rgba(15,23,42,0.8)" stroke="#475569" stroke-width="1.5" />
+            <path d="M 0 -12 L 5 4 L 0 0 L -5 4 Z" fill="#38bdf8" />
+            <path d="M 0 0 L 5 4 L 0 12 L -5 4 Z" fill="#475569" opacity="0.6" />
+            <text x="0" y="-15" fill="#38bdf8" font-size="9" font-weight="800" text-anchor="middle">N</text>
+          </g>
+          <text x="50" y="52" fill="#64748b" font-size="10" font-family="monospace">TORRE GARTEN ARCHITECTURE • MİQYAS 1:100</text>
+
+          <!-- ================= CENTRAL CORE (HOLL, LİFT, PİLLƏKƏN) ================= -->
+          <rect x="428" y="25" width="144" height="630" class="cad-core" />
+          
+          <!-- Lift 1 -->
+          <rect x="440" y="150" width="56" height="66" fill="#1e293b" stroke="#64748b" stroke-width="2" />
+          <line x1="440" y1="150" x2="496" y2="216" stroke="#475569" stroke-width="1.2" stroke-dasharray="3,3" />
+          <line x1="496" y1="150" x2="440" y2="216" stroke="#475569" stroke-width="1.2" stroke-dasharray="3,3" />
+          <line x1="440" y1="216" x2="496" y2="216" stroke="#38bdf8" stroke-width="3" />
+          <text x="468" y="186" fill="#94a3b8" font-size="9" font-weight="700" text-anchor="middle">LİFT 1</text>
+          <text x="468" y="198" fill="#64748b" font-size="8" text-anchor="middle">1000 kq</text>
+
+          <!-- Lift 2 -->
+          <rect x="504" y="150" width="56" height="66" fill="#1e293b" stroke="#64748b" stroke-width="2" />
+          <line x1="504" y1="150" x2="560" y2="216" stroke="#475569" stroke-width="1.2" stroke-dasharray="3,3" />
+          <line x1="560" y1="150" x2="504" y2="216" stroke="#475569" stroke-width="1.2" stroke-dasharray="3,3" />
+          <line x1="504" y1="216" x2="560" y2="216" stroke="#38bdf8" stroke-width="3" />
+          <text x="532" y="186" fill="#94a3b8" font-size="9" font-weight="700" text-anchor="middle">LİFT 2</text>
+          <text x="532" y="198" fill="#64748b" font-size="8" text-anchor="middle">630 kq</text>
+
+          <!-- Staircase (Pilləkən Qəfəsi) -->
+          <rect x="438" y="450" width="124" height="110" fill="#1e293b" stroke="#64748b" stroke-width="2" />
+          <line x1="500" y1="450" x2="500" y2="560" stroke="#94a3b8" stroke-width="2.5" />
+          <!-- Stair Steps -->
+          <g stroke="#64748b" stroke-width="1.2">
+            <line x1="438" y1="465" x2="500" y2="465" /><line x1="438" y1="480" x2="500" y2="480" />
+            <line x1="438" y1="495" x2="500" y2="495" /><line x1="438" y1="510" x2="500" y2="510" />
+            <line x1="438" y1="525" x2="500" y2="525" /><line x1="438" y1="540" x2="500" y2="540" />
+            <line x1="500" y1="465" x2="562" y2="465" /><line x1="500" y1="480" x2="562" y2="480" />
+            <line x1="500" y1="495" x2="562" y2="495" /><line x1="500" y1="510" x2="562" y2="510" />
+            <line x1="500" y1="525" x2="562" y2="525" /><line x1="500" y1="540" x2="562" y2="540" />
+          </g>
+          <path d="M 470 545 L 470 460 L 530 460 L 530 545" fill="none" stroke="#38bdf8" stroke-width="1.5" stroke-dasharray="3,3" />
+          <text x="500" y="575" fill="#94a3b8" font-size="9" font-weight="700" text-anchor="middle">YANĞIN PİLLƏKƏNİ</text>
+
+          <!-- Central Corridor & Lighting -->
+          <rect x="430" y="240" width="140" height="190" fill="#0f172a" />
+          <text x="500" y="325" fill="#64748b" font-size="11" font-weight="700" letter-spacing="0.1em" text-anchor="middle">MƏRTƏBƏ HOLLU</text>
+          <circle cx="500" cy="345" r="4" fill="#facc15" opacity="0.6" />
+
+          <!-- ================= APARTMENT 1 (TOP LEFT - 68 m² / 2 OTAQ) ================= -->
+          <!-- Apartment Header Badge -->
+          <g class="apt-header-pill" id="svg-zone-0" onclick="selectApartmentSector('01')">
+            <rect x="45" y="36" width="225" height="26" rx="8" fill="rgba(15,23,42,0.95)" stroke="#10b981" stroke-width="1.5" />
+            <text x="55" y="53" fill="#ffffff" font-size="11" font-weight="800" id="svg-title-0">Mənzil 301</text>
+            <text x="122" y="53" fill="#94a3b8" font-size="10" font-weight="600" id="svg-meta-0">• 2 Otaq • 68 m²</text>
+            <text x="260" y="53" fill="#34d399" font-size="10" font-weight="700" text-anchor="end" id="svg-price-0">115,000 AZN</text>
+          </g>
+
+          <g id="apt1-rooms">
+            <!-- Living Room (Qonaq Otağı) -->
+            <g class="svg-room-zone" data-apt="01" data-room-key="living" onclick="selectRoom(this, '01', 'living', 'Qonaq Otağı', 28.5)">
+              <rect x="45" y="68" width="220" height="142" rx="6" class="room-rect" />
+              <!-- Furniture -->
+              <path d="M 60 85 L 145 85 L 145 118 L 120 118 L 120 135 L 60 135 Z" class="cad-furniture" />
+              <rect x="75" y="95" width="40" height="22" rx="3" class="cad-furniture" />
+              <line x1="45" y1="68" x2="45" y2="135" class="cad-glass" />
+              <text x="52" y="78" fill="#38bdf8" font-size="8">Eyvan</text>
+              <!-- Center Badge Pill -->
+              <rect x="100" y="125" width="110" height="32" rx="6" class="room-badge-pill" />
+              <text x="155" y="138" class="cad-label-room">Qonaq Otağı</text>
+              <text x="155" y="151" class="cad-label-area">28.5 m² • 360°</text>
+            </g>
+
+            <!-- Master Bedroom (Yataq Otağı) -->
+            <g class="svg-room-zone" data-apt="01" data-room-key="bedroom" onclick="selectRoom(this, '01', 'bedroom', 'Yataq Otağı', 18.0)">
+              <rect x="269" y="68" width="155" height="142" rx="6" class="room-rect" />
+              <!-- Bed Furniture -->
+              <rect x="315" y="78" width="65" height="70" rx="4" class="cad-furniture" />
+              <rect x="325" y="82" width="20" height="14" rx="2" fill="rgba(255,255,255,0.1)" stroke="#64748b" />
+              <rect x="350" y="82" width="20" height="14" rx="2" fill="rgba(255,255,255,0.1)" stroke="#64748b" />
+              <!-- Center Badge Pill -->
+              <rect x="292" y="156" width="110" height="32" rx="6" class="room-badge-pill" />
+              <text x="347" y="169" class="cad-label-room">Yataq Otağı</text>
+              <text x="347" y="182" class="cad-label-area">18.0 m² • 360°</text>
+            </g>
+
+            <!-- Kitchen (Mətbəx) -->
+            <g class="svg-room-zone" data-apt="01" data-room-key="lounge" onclick="selectRoom(this, '01', 'lounge', 'Mətbəx', 12.0)">
+              <rect x="45" y="214" width="175" height="122" rx="6" class="room-rect" />
+              <!-- Kitchen Furniture -->
+              <path d="M 50 220 L 135 220 L 135 245 L 75 245 L 75 310 L 50 310 Z" class="cad-furniture" />
+              <circle cx="62" cy="270" r="7" stroke="#38bdf8" fill="none" />
+              <!-- Center Badge Pill -->
+              <rect x="82" y="260" width="100" height="32" rx="6" class="room-badge-pill" />
+              <text x="132" y="273" class="cad-label-room">Mətbəx</text>
+              <text x="132" y="286" class="cad-label-area">12.0 m² • 360°</text>
+            </g>
+
+            <!-- Bathroom (Sanuzel) -->
+            <g class="svg-room-zone" data-apt="01" data-room-key="ensuite" onclick="selectRoom(this, '01', 'ensuite', 'Sanuzel', 5.5)">
+              <rect x="224" y="214" width="95" height="122" rx="6" class="room-rect" />
+              <!-- Sanuzel Furniture -->
+              <rect x="230" y="222" width="30" height="50" rx="5" class="cad-furniture" />
+              <circle cx="280" cy="245" r="6" stroke="#94a3b8" fill="none" />
+              <!-- Center Badge Pill -->
+              <rect x="231" y="260" width="80" height="32" rx="6" class="room-badge-pill" />
+              <text x="271" y="273" class="cad-label-room">Sanuzel</text>
+              <text x="271" y="286" class="cad-label-area">5.5 m²</text>
+            </g>
+
+            <!-- Hallway (Dəhliz) -->
+            <g class="svg-room-zone" data-apt="01" data-room-key="living" onclick="selectRoom(this, '01', 'living', 'Dəhliz', 4.0)">
+              <rect x="323" y="214" width="101" height="122" rx="6" class="room-rect" />
+              <!-- Entrance Arc -->
+              <path d="M 424 255 A 28 28 0 0 1 396 283" class="cad-door-arc" />
+              <line x1="424" y1="255" x2="396" y2="255" class="cad-door-leaf" />
+              <!-- Center Badge Pill -->
+              <rect x="333" y="260" width="80" height="32" rx="6" class="room-badge-pill" />
+              <text x="373" y="273" class="cad-label-room">Dəhliz</text>
+              <text x="373" y="286" class="cad-label-area">4.0 m²</text>
+            </g>
+          </g>
+
+          <!-- ================= APARTMENT 2 (TOP RIGHT - 112 m² / 3 OTAQ) ================= -->
+          <!-- Apartment Header Badge -->
+          <g class="apt-header-pill" id="svg-zone-1" onclick="selectApartmentSector('02')">
+            <rect x="725" y="36" width="230" height="26" rx="8" fill="rgba(15,23,42,0.95)" stroke="#38bdf8" stroke-width="1.5" />
+            <text x="735" y="53" fill="#ffffff" font-size="11" font-weight="800" id="svg-title-1">Mənzil 302</text>
+            <text x="805" y="53" fill="#94a3b8" font-size="10" font-weight="600" id="svg-meta-1">• 3 Otaq • 112 m²</text>
+            <text x="945" y="53" fill="#38bdf8" font-size="10" font-weight="700" text-anchor="end" id="svg-price-1">190,000 AZN</text>
+          </g>
+
+          <g id="apt2-rooms">
+            <!-- Living Room (Böyük Qonaq Zalı) -->
+            <g class="svg-room-zone" data-apt="02" data-room-key="living" onclick="selectRoom(this, '02', 'living', 'Böyük Qonaq Zalı', 42.0)">
+              <rect x="576" y="68" width="220" height="142" rx="6" class="room-rect" />
+              <!-- Furniture -->
+              <path d="M 590 85 L 680 85 L 680 120 L 650 120 L 650 135 L 590 135 Z" class="cad-furniture" />
+              <rect x="605" y="95" width="45" height="25" rx="3" class="cad-furniture" />
+              <rect x="705" y="80" width="55" height="35" rx="3" class="cad-furniture" />
+              <!-- Center Badge Pill -->
+              <rect x="626" y="124" width="120" height="32" rx="6" class="room-badge-pill" />
+              <text x="686" y="137" class="cad-label-room">Böyük Qonaq Zalı</text>
+              <text x="686" y="150" class="cad-label-area">42.0 m² • 360°</text>
+            </g>
+
+            <!-- Master Bedroom (Master Yataq) -->
+            <g class="svg-room-zone" data-apt="02" data-room-key="bedroom" onclick="selectRoom(this, '02', 'bedroom', 'Master Yataq', 24.0)">
+              <rect x="800" y="68" width="155" height="142" rx="6" class="room-rect" />
+              <!-- King Bed -->
+              <rect x="835" y="78" width="70" height="75" rx="4" class="cad-furniture" />
+              <rect x="845" y="82" width="22" height="14" rx="2" fill="rgba(255,255,255,0.1)" stroke="#64748b" />
+              <rect x="873" y="82" width="22" height="14" rx="2" fill="rgba(255,255,255,0.1)" stroke="#64748b" />
+              <line x1="955" y1="68" x2="955" y2="140" class="cad-glass" />
+              <!-- Center Badge Pill -->
+              <rect x="823" y="156" width="110" height="32" rx="6" class="room-badge-pill" />
+              <text x="878" y="169" class="cad-label-room">Master Yataq</text>
+              <text x="878" y="182" class="cad-label-area">24.0 m² • 360°</text>
+            </g>
+
+            <!-- Kitchen (Mətbəx) -->
+            <g class="svg-room-zone" data-apt="02" data-room-key="panoramic" onclick="selectRoom(this, '02', 'panoramic', 'Mətbəx', 16.0)">
+              <rect x="576" y="214" width="115" height="122" rx="6" class="room-rect" />
+              <path d="M 582 220 L 665 220 L 665 245 L 605 245 L 605 310 L 582 310 Z" class="cad-furniture" />
+              <!-- Center Badge Pill -->
+              <rect x="583" y="260" width="100" height="32" rx="6" class="room-badge-pill" />
+              <text x="633" y="273" class="cad-label-room">Mətbəx</text>
+              <text x="633" y="286" class="cad-label-area">16.0 m² • 360°</text>
+            </g>
+
+            <!-- Bathroom (Sanuzel) -->
+            <g class="svg-room-zone" data-apt="02" data-room-key="ensuite" onclick="selectRoom(this, '02', 'ensuite', 'Sanuzel', 7.0)">
+              <rect x="695" y="214" width="100" height="122" rx="6" class="room-rect" />
+              <rect x="702" y="222" width="35" height="50" rx="5" class="cad-furniture" />
+              <!-- Center Badge Pill -->
+              <rect x="705" y="260" width="80" height="32" rx="6" class="room-badge-pill" />
+              <text x="745" y="273" class="cad-label-room">Sanuzel</text>
+              <text x="745" y="286" class="cad-label-area">7.0 m²</text>
+            </g>
+
+            <!-- Bedroom 2 (Yataq Otağı 2) -->
+            <g class="svg-room-zone" data-apt="02" data-room-key="lounge" onclick="selectRoom(this, '02', 'lounge', 'Yataq Otağı 2', 16.0)">
+              <rect x="799" y="214" width="156" height="122" rx="6" class="room-rect" />
+              <rect x="880" y="225" width="55" height="45" rx="3" class="cad-furniture" />
+              <!-- Center Badge Pill -->
+              <rect x="822" y="260" width="110" height="32" rx="6" class="room-badge-pill" />
+              <text x="877" y="273" class="cad-label-room">Yataq Otağı 2</text>
+              <text x="877" y="286" class="cad-label-area">16.0 m² • 360°</text>
+            </g>
+          </g>
+
+          <!-- ================= APARTMENT 3 (BOTTOM LEFT - 46 m² / 1 OTAQ STUDIO) ================= -->
+          <!-- Apartment Header Badge -->
+          <g class="apt-header-pill" id="svg-zone-2" onclick="selectApartmentSector('03')">
+            <rect x="45" y="618" width="225" height="26" rx="8" fill="rgba(15,23,42,0.95)" stroke="#f59e0b" stroke-width="1.5" />
+            <text x="55" y="635" fill="#ffffff" font-size="11" font-weight="800" id="svg-title-2">Mənzil 303</text>
+            <text x="122" y="635" fill="#94a3b8" font-size="10" font-weight="600" id="svg-meta-2">• 1 Otaq • 46 m²</text>
+            <text x="260" y="635" fill="#fbbf24" font-size="10" font-weight="700" text-anchor="end" id="svg-price-2">78,000 AZN</text>
+          </g>
+
+          <g id="apt3-rooms">
+            <!-- Studio Living & Kitchen -->
+            <g class="svg-room-zone" data-apt="03" data-room-key="living" onclick="selectRoom(this, '03', 'living', 'Studio Zalı', 24.0)">
+              <rect x="45" y="348" width="220" height="262" rx="6" class="room-rect" />
+              <!-- Studio Furniture -->
+              <path d="M 60 375 L 140 375 L 140 425 L 115 425 L 115 445 L 60 445 Z" class="cad-furniture" />
+              <rect x="75" y="390" width="40" height="22" rx="3" class="cad-furniture" />
+              <path d="M 50 515 L 125 515 L 125 540 L 75 540 L 75 595 L 50 595 Z" class="cad-furniture" />
+              <circle cx="62" cy="565" r="7" stroke="#38bdf8" fill="none" />
+              <line x1="45" y1="350" x2="45" y2="420" class="cad-glass" />
+              <!-- Center Badge Pill -->
+              <rect x="90" y="460" width="130" height="32" rx="6" class="room-badge-pill" />
+              <text x="155" y="473" class="cad-label-room">Studio Qonaq & Mətbəx</text>
+              <text x="155" y="486" class="cad-label-area">24.0 m² • 360°</text>
+            </g>
+
+            <!-- Bedroom (Yataq Otağı) -->
+            <g class="svg-room-zone" data-apt="03" data-room-key="bedroom" onclick="selectRoom(this, '03', 'bedroom', 'Yataq Otağı', 14.0)">
+              <rect x="269" y="348" width="155" height="138" rx="6" class="room-rect" />
+              <!-- Furniture -->
+              <rect x="315" y="365" width="60" height="70" rx="4" class="cad-furniture" />
+              <rect x="323" y="370" width="18" height="14" rx="2" fill="rgba(255,255,255,0.1)" stroke="#64748b" />
+              <rect x="348" y="370" width="18" height="14" rx="2" fill="rgba(255,255,255,0.1)" stroke="#64748b" />
+              <!-- Center Badge Pill -->
+              <rect x="292" y="434" width="110" height="32" rx="6" class="room-badge-pill" />
+              <text x="347" y="447" class="cad-label-room">Yataq Otağı</text>
+              <text x="347" y="460" class="cad-label-area">14.0 m² • 360°</text>
+            </g>
+
+            <!-- Bathroom (Sanuzel) -->
+            <g class="svg-room-zone" data-apt="03" data-room-key="ensuite" onclick="selectRoom(this, '03', 'ensuite', 'Sanuzel', 4.5)">
+              <rect x="269" y="490" width="155" height="120" rx="6" class="room-rect" />
+              <!-- Furniture -->
+              <rect x="280" y="505" width="35" height="35" rx="5" class="cad-furniture" />
+              <circle cx="345" cy="525" r="6" stroke="#94a3b8" fill="none" />
+              <!-- Center Badge Pill -->
+              <rect x="302" y="534" width="90" height="32" rx="6" class="room-badge-pill" />
+              <text x="347" y="547" class="cad-label-room">Sanuzel</text>
+              <text x="347" y="560" class="cad-label-area">4.5 m²</text>
+            </g>
+          </g>
+
+          <!-- ================= APARTMENT 4 (BOTTOM RIGHT - 145 m² / 4 OTAQ) ================= -->
+          <!-- Apartment Header Badge -->
+          <g class="apt-header-pill" id="svg-zone-3" onclick="selectApartmentSector('04')">
+            <rect x="725" y="618" width="230" height="26" rx="8" fill="rgba(15,23,42,0.95)" stroke="#ef4444" stroke-width="1.5" />
+            <text x="735" y="635" fill="#ffffff" font-size="11" font-weight="800" id="svg-title-3">Mənzil 304</text>
+            <text x="805" y="635" fill="#94a3b8" font-size="10" font-weight="600" id="svg-meta-3">• 4 Otaq • 145 m²</text>
+            <text x="945" y="635" fill="#f87171" font-size="10" font-weight="700" text-anchor="end" id="svg-price-3">250,000 AZN</text>
+          </g>
+
+          <g id="apt4-rooms">
+            <!-- Grand Salon (Geniş Qonaq Zalı) -->
+            <g class="svg-room-zone" data-apt="04" data-room-key="living" onclick="selectRoom(this, '04', 'living', 'Geniş Qonaq Zalı', 52.0)">
+              <rect x="576" y="348" width="220" height="138" rx="6" class="room-rect" />
+              <!-- Furniture -->
+              <path d="M 590 365 L 675 365 L 675 405 L 645 405 L 645 425 L 590 425 Z" class="cad-furniture" />
+              <rect x="695" y="365" width="65" height="35" rx="3" class="cad-furniture" />
+              <!-- Center Badge Pill -->
+              <rect x="626" y="401" width="120" height="32" rx="6" class="room-badge-pill" />
+              <text x="686" y="414" class="cad-label-room">Geniş Qonaq Zalı</text>
+              <text x="686" y="427" class="cad-label-area">52.0 m² • 360°</text>
+            </g>
+
+            <!-- Master Bedroom (Master Yataq) -->
+            <g class="svg-room-zone" data-apt="04" data-room-key="bedroom" onclick="selectRoom(this, '04', 'bedroom', 'Master Yataq', 26.0)">
+              <rect x="800" y="348" width="155" height="138" rx="6" class="room-rect" />
+              <!-- King Bed -->
+              <rect x="835" y="360" width="70" height="75" rx="4" class="cad-furniture" />
+              <rect x="845" y="364" width="22" height="14" rx="2" fill="rgba(255,255,255,0.1)" stroke="#64748b" />
+              <rect x="873" y="364" width="22" height="14" rx="2" fill="rgba(255,255,255,0.1)" stroke="#64748b" />
+              <line x1="955" y1="350" x2="955" y2="440" class="cad-glass" />
+              <!-- Center Badge Pill -->
+              <rect x="823" y="401" width="110" height="32" rx="6" class="room-badge-pill" />
+              <text x="878" y="414" class="cad-label-room">Master Yataq</text>
+              <text x="878" y="427" class="cad-label-area">26.0 m² • 360°</text>
+            </g>
+
+            <!-- Grand Kitchen (Geniş Mətbəx) -->
+            <g class="svg-room-zone" data-apt="04" data-room-key="panoramic" onclick="selectRoom(this, '04', 'panoramic', 'Geniş Mətbəx', 20.0)">
+              <rect x="576" y="490" width="120" height="120" rx="6" class="room-rect" />
+              <path d="M 582 498 L 665 498 L 665 520 L 605 520 L 605 580 L 582 580 Z" class="cad-furniture" />
+              <!-- Center Badge Pill -->
+              <rect x="586" y="534" width="100" height="32" rx="6" class="room-badge-pill" />
+              <text x="636" y="547" class="cad-label-room">Geniş Mətbəx</text>
+              <text x="636" y="560" class="cad-label-area">20.0 m² • 360°</text>
+            </g>
+
+            <!-- Bedroom 2 (Yataq Otağı 2) -->
+            <g class="svg-room-zone" data-apt="04" data-room-key="lounge" onclick="selectRoom(this, '04', 'lounge', 'Yataq Otağı 2', 18.0)">
+              <rect x="700" y="490" width="124" height="120" rx="6" class="room-rect" />
+              <rect x="725" y="500" width="50" height="45" rx="3" class="cad-furniture" />
+              <!-- Center Badge Pill -->
+              <rect x="712" y="534" width="100" height="32" rx="6" class="room-badge-pill" />
+              <text x="762" y="547" class="cad-label-room">Yataq Otağı 2</text>
+              <text x="762" y="560" class="cad-label-area">18.0 m² • 360°</text>
+            </g>
+
+            <!-- Room 3 / Cabinet (Kabinet / Yataq) -->
+            <g class="svg-room-zone" data-apt="04" data-room-key="bedroom" onclick="selectRoom(this, '04', 'bedroom', 'Kabinet / Yataq', 15.0)">
+              <rect x="828" y="490" width="127" height="120" rx="6" class="room-rect" />
+              <rect x="850" y="500" width="45" height="40" rx="3" class="cad-furniture" />
+              <line x1="955" y1="490" x2="955" y2="580" class="cad-glass" />
+              <!-- Center Badge Pill -->
+              <rect x="837" y="534" width="110" height="32" rx="6" class="room-badge-pill" />
+              <text x="892" y="547" class="cad-label-room">Kabinet / Yataq</text>
+              <text x="892" y="560" class="cad-label-area">15.0 m² • 360°</text>
+            </g>
+          </g>
+        </svg>
+      </div>
+
+      <!-- Right Side: Selected Apartment Full Details -->
+      <div class="apt-detail-sidebar" id="apt-detail-sidebar">
+        <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12px;">
+          <div>
+            <span class="status-pill status-available" id="side-status-pill">Satışda</span>
+            <h2 id="side-apt-num" style="font-size:26px; font-weight:800; margin-top:6px;">Mənzil 301</h2>
+            <p id="side-apt-subtitle" style="font-size:13px; color:var(--text-muted);">Mərtəbə 3 • Şəhər və Dəniz Panoraması</p>
+          </div>
+        </div>
+
+        <!-- Selected Room Highlight Pill -->
+        <div id="side-selected-room-badge" style="background:rgba(56, 189, 248, 0.12); border:1px solid rgba(56, 189, 248, 0.35); border-radius:12px; padding:10px 14px; margin-bottom:16px; font-size:13px; color:#38bdf8; display:flex; align-items:center; gap:8px;">
+          <span style="font-size:16px;">📍</span>
+          <span id="side-room-text"><strong>Seçilmiş Otaq:</strong> Qonaq Otağı (28.5 m²)</span>
+        </div>
+
+        <div style="background:rgba(255,255,255,0.04); border-radius:16px; padding:18px; margin-bottom:18px; border:1px solid rgba(255,255,255,0.08);">
+          <div style="font-size:12px; color:var(--text-muted); font-weight:600;">ÜMUMİ DƏYƏR</div>
+          <div id="side-price" style="font-size:30px; font-weight:800; color:var(--accent); margin:4px 0;">190,000 AZN</div>
+          <div id="side-price-m2" style="font-size:12px; color:#cbd5e1;">1 m² = 1,696 AZN</div>
+        </div>
+
+        <!-- Specifications Grid -->
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:20px;">
+          <div style="background:rgba(255,255,255,0.03); padding:12px; border-radius:12px;">
+            <div style="font-size:11px; color:var(--text-muted);">Ümumi Sahə</div>
+            <div id="side-area" style="font-size:16px; font-weight:700;">112 m²</div>
+          </div>
+          <div style="background:rgba(255,255,255,0.03); padding:12px; border-radius:12px;">
+            <div style="font-size:11px; color:var(--text-muted);">Otaq Sayı</div>
+            <div id="side-rooms" style="font-size:16px; font-weight:700;">3 Otaqlı</div>
+          </div>
+          <div style="background:rgba(255,255,255,0.03); padding:12px; border-radius:12px;">
+            <div style="font-size:11px; color:var(--text-muted);">Tavan Hündürlüyü</div>
+            <div style="font-size:16px; font-weight:700;">3.30 m</div>
+          </div>
+          <div style="background:rgba(255,255,255,0.03); padding:12px; border-radius:12px;">
+            <div style="font-size:11px; color:var(--text-muted);">Sanitar Qovşaq</div>
+            <div style="font-size:16px; font-weight:700;">2 Ədəd</div>
+          </div>
+        </div>
+
+        <!-- Features list -->
+        <div style="margin-bottom:24px;">
+          <div style="font-size:12px; font-weight:700; color:var(--text-muted); margin-bottom:8px;">ÜSTÜNLÜKLƏR</div>
+          <ul style="list-style:none; font-size:13px; color:#cbd5e1; display:flex; flex-direction:column; gap:6px;">
+            <li>✓ Geniş vitraj pəncərələr</li>
+            <li>✓ Yüksək səs və istilik izolyasiyası</li>
+            <li>✓ Fərdi kombi və mərkəzi havalandırma</li>
+            <li>✓ Açıq panoramik eyvan</li>
+          </ul>
+        </div>
+
+        <!-- Action Buttons -->
+        <div style="display:flex; flex-direction:column; gap:10px; margin-top:auto;">
+          <button class="action-btn" style="background:var(--primary); justify-content:center; padding:14px; font-size:14px;" id="side-btn-tour" onclick="openTourModal(currentSelectedAptCode, currentSelectedRoomKey)">
+            <i data-lucide="eye" style="width:18px; height:18px;"></i> 360° Virtual Tura Başla
+          </button>
+          <button class="action-btn" style="justify-content:center; padding:12px; font-size:13px;" onclick="openInquiryModal(currentSelectedAptCode)">
+            <i data-lucide="calendar" style="width:16px; height:16px;"></i> Mənzili Rezerv Et / Əlaqə
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= 360 PANORAMA TOUR MODAL ================= -->
+  <div id="tour-modal">
+    <div id="tour-canvas-container"></div>
+    <!-- Interactive Doorway Walkthrough Hotspots -->
+    <div id="hotspots-container"></div>
+    <div id="tour-transition-overlay"></div>
+
+    <!-- Interactive Floor Plan Radar Mini-Map in 360 Tour -->
+    <div class="tour-radar-card" id="tour-radar-card">
+      <div class="radar-header">
+        <span>📍 Mərtəbə Radarı</span>
+        <span id="radar-room-name" style="color:#fff; font-size:10px;">Qonaq Zalı</span>
+      </div>
+      <svg class="radar-svg" viewBox="0 0 200 130" id="radar-svg">
+        <!-- 5 Rooms layout in Mini-Map -->
+        <g id="radar-rooms-group">
+          <!-- Living Room (center left) -->
+          <rect x="10" y="10" width="80" height="60" rx="4" class="radar-room active" id="radar-living" onclick="switchTourRoom('living')" />
+          <text x="50" y="44" fill="#94a3b8" font-size="8" text-anchor="middle" pointer-events="none">Qonaq Zalı</text>
+
+          <!-- Master Bedroom (center right) -->
+          <rect x="95" y="10" width="60" height="60" rx="4" class="radar-room" id="radar-bedroom" onclick="switchTourRoom('bedroom')" />
+          <text x="125" y="44" fill="#94a3b8" font-size="8" text-anchor="middle" pointer-events="none">Yataq</text>
+
+          <!-- Panoramic Terrace (far right) -->
+          <rect x="160" y="10" width="30" height="110" rx="4" class="radar-room" id="radar-panoramic" onclick="switchTourRoom('panoramic')" />
+          <text x="175" y="68" fill="#38bdf8" font-size="8" text-anchor="middle" transform="rotate(90, 175, 68)" pointer-events="none">Terras</text>
+
+          <!-- Lounge / Fireplace (bottom left) -->
+          <rect x="10" y="75" width="80" height="45" rx="4" class="radar-room" id="radar-lounge" onclick="switchTourRoom('lounge')" />
+          <text x="50" y="102" fill="#94a3b8" font-size="8" text-anchor="middle" pointer-events="none">Şöminə</text>
+
+          <!-- Ensuite (bottom center) -->
+          <rect x="95" y="75" width="60" height="45" rx="4" class="radar-room" id="radar-ensuite" onclick="switchTourRoom('ensuite')" />
+          <text x="125" y="102" fill="#94a3b8" font-size="8" text-anchor="middle" pointer-events="none">Vanna</text>
+        </g>
+
+        <!-- Vision Cone & User Dot (Rotates dynamically with 360 camera!) -->
+        <g id="radar-user-group" transform="translate(50, 40)">
+          <!-- Viewing Angle Cone -->
+          <polygon points="0,0 -16,-34 16,-34" class="radar-view-cone" id="radar-cone" />
+          <!-- User Dot -->
+          <circle cx="0" cy="0" r="4.5" class="radar-user-dot" />
+        </g>
+      </svg>
+    </div>
+
+    <div class="tour-ui-overlay">
+      <div class="tour-header">
+        <div>
+          <span style="font-size:11px; color:var(--accent); font-weight:700;">360° İNTERAKTİV VİRTUAL TUR</span>
+          <h3 id="tour-apt-title" style="font-size:16px; font-weight:700;">Mənzil 302 — Qonaq Otağı</h3>
+        </div>
+        <div style="display:flex; align-items:center; gap:8px; margin-left:20px;">
+          <button class="action-btn" id="btn-tour-autorotate" style="padding:6px 12px; font-size:12px;" onclick="toggleTourAutoRotate()" title="Avtomatik Fırlanma">
+            <i data-lucide="refresh-cw" style="width:14px; height:14px;"></i> Avto-Tur
+          </button>
+          <button class="action-btn" style="padding:6px 12px; font-size:12px;" onclick="toggleTourFullscreen()" title="Tam Ekran">
+            <i data-lucide="maximize" style="width:14px; height:14px;"></i>
+          </button>
+          <button class="action-btn" style="padding:6px 14px; font-size:12px;" onclick="closeTourModal()">
+            <i data-lucide="x" style="width:14px; height:14px;"></i> Çıxış
+          </button>
+        </div>
+      </div>
+
+      <div class="tour-room-selector">
+        <button class="room-btn active" onclick="switchTourRoom('living')">🛋️ Əsas Qonaq Zalı (8K)</button>
+        <button class="room-btn" onclick="switchTourRoom('bedroom')">🛏️ Master Yataq Otağı (8K)</button>
+        <button class="room-btn" onclick="switchTourRoom('lounge')">🪵 Şöminə & Bilyard Zalı (8K)</button>
+        <button class="room-btn" onclick="switchTourRoom('ensuite')">🚿 En-Suite Vanna (8K)</button>
+        <button class="room-btn" onclick="switchTourRoom('panoramic')">🌟 Panoramik Terras Süiti (8K)</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= BOOKING & INQUIRY MODAL ================= -->
+  <div class="custom-modal" id="inquiry-modal">
+    <div class="modal-card">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:18px;">
+        <h3 style="font-size:20px; font-weight:700;">Mənzil Rezervasiyası və Əlaqə</h3>
+        <button onclick="closeInquiryModal()" style="background:transparent; border:none; color:#94a3b8; cursor:pointer;">
+          <i data-lucide="x" style="width:20px; height:20px;"></i>
+        </button>
+      </div>
+      <p style="font-size:13px; color:var(--text-muted); margin-bottom:20px;">
+        Seçilmiş mənzil: <strong id="modal-chosen-apt" style="color:var(--accent);">Mənzil 302</strong> üzrə satış şöbəsinə sorğu göndərin.
+      </p>
+      <form onsubmit="submitInquiry(event)">
+        <div style="margin-bottom:14px;">
+          <label style="display:block; font-size:12px; color:var(--text-muted); margin-bottom:6px;">Ad və Soyad</label>
+          <input type="text" id="inq-name" required placeholder="Məs: Əli Məmmədov" class="admin-input" style="width:100%; padding:10px 14px;">
+        </div>
+        <div style="margin-bottom:14px;">
+          <label style="display:block; font-size:12px; color:var(--text-muted); margin-bottom:6px;">Əlaqə Nömrəsi</label>
+          <input type="tel" id="inq-phone" required placeholder="+994 50 123 45 67" class="admin-input" style="width:100%; padding:10px 14px;">
+        </div>
+        <div style="margin-bottom:20px;">
+          <label style="display:block; font-size:12px; color:var(--text-muted); margin-bottom:6px;">Qeyd və ya İstək</label>
+          <textarea id="inq-notes" rows="3" placeholder="Görüş vaxtı, ipoteka şərtləri və s." class="admin-input" style="width:100%; padding:10px 14px;"></textarea>
+        </div>
+        <button type="submit" class="action-btn" style="width:100%; justify-content:center; background:var(--primary); padding:14px; font-size:14px;">
+          Sorğunu Təsdiq Et və Göndər
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ================= ADMIN MANAGEMENT PANEL MODAL ================= -->
+  <div id="admin-modal">
+    <div class="admin-card">
+      <div style="padding:18px 24px; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--panel-border);">
+        <div>
+          <h2 style="font-size:20px; font-weight:700;">⚙️ Torre Garten — İdarəetmə Paneli (Admin)</h2>
+          <p style="font-size:12px; color:var(--text-muted);">Qiymətləri, statusları real vaxtda dəyişin və müştəri sorğularını idarə edin</p>
+        </div>
+        <button class="action-btn" onclick="closeAdminModal()">
+          <i data-lucide="x" style="width:16px; height:16px;"></i> Bağla
+        </button>
+      </div>
+
+      <div class="admin-nav">
+        <button class="admin-tab-btn active" id="adm-tab-apts" onclick="switchAdminTab('apts')">🏢 Mənzillərin İdarəsi (56)</button>
+        <button class="admin-tab-btn" id="adm-tab-leads" onclick="switchAdminTab('leads')">📞 Müştəri Sorğuları (<span id="leads-count">0</span>)</button>
+        <button class="admin-tab-btn" id="adm-tab-stats" onclick="switchAdminTab('stats')">📊 Satış Statistikası</button>
+      </div>
+
+      <div class="admin-content" id="admin-content-area">
+        <!-- Generated via JavaScript -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="toast-msg">Məlumat uğurla yadda saxlanıldı!</div>
+
+  <!-- Application Logic -->
+  <script>
+    // ==========================================
+    // 0. BROWSER COMPATIBILITY POLYFILLS
+    // ==========================================
+    if (typeof SVGElement !== 'undefined' && !SVGElement.prototype.click) {
+      SVGElement.prototype.click = function () {
+        this.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
+      };
+    }
+
+    function triggerElementClick(elem) {
+      if (!elem) return;
+      if (typeof elem.click === 'function') {
+        elem.click();
+      } else {
+        elem.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));
+      }
+    }
+
+    // ==========================================
+    // 1. DATA MODEL & STORAGE INITIALIZATION
+    // ==========================================
+    function generateInitialApartments() {
+      const apts = [];
+      for (let f = 1; f <= 14; f++) {
+        const floorTypes = [
+          { num: `${f}01`, rooms: 2, area: 68, basePrice: 105000, type: '2 Otaqlı • Şəhər Panoraması' },
+          { num: `${f}02`, rooms: 3, area: 112, basePrice: 180000, type: '3 Otaqlı • Dəniz & Park Panoraması' },
+          { num: `${f}03`, rooms: 1, area: 46, basePrice: 75000, type: '1 Otaqlı • Studio' },
+          { num: `${f}04`, rooms: 4, area: 145, basePrice: 245000, type: '4 Otaqlı • Lüks Panoramik Mənzil' },
+        ];
+        floorTypes.forEach((t, idx) => {
+          const status = (f === 3 && idx === 1) ? 'available' : ((f * 3 + idx) % 5 === 0 ? 'sold' : ((f + idx) % 4 === 0 ? 'reserved' : 'available'));
+          apts.push({
+            id: `A-${t.num}`,
+            floor: f,
+            number: t.num,
+            rooms: t.rooms,
+            area: t.area,
+            price: t.basePrice + (f - 1) * 3500,
+            status: status,
+            desc: t.type
+          });
+        });
+      }
+      return apts;
+    }
+
+    const DEFAULT_APARTMENTS = generateInitialApartments();
+
+    function getApartments() {
+      const stored = localStorage.getItem('torre_apartments_v2');
+      if (stored) {
+        try {
+          const parsed = JSON.parse(stored);
+          if (parsed && parsed.length >= 50) return parsed;
+        } catch (e) {}
+      }
+      localStorage.setItem('torre_apartments_v2', JSON.stringify(DEFAULT_APARTMENTS));
+      return DEFAULT_APARTMENTS;
+    }
+
+    function saveApartments(data) {
+      localStorage.setItem('torre_apartments_v2', JSON.stringify(data));
+      updateUIWithData();
+    }
+
+    function getInquiries() {
+      const stored = localStorage.getItem('azure_inquiries');
+      if (stored) {
+        try { return JSON.parse(stored); } catch (e) {}
+      }
+      return [
+        { name: 'Rəşad Quliyev', phone: '+994 50 211 44 55', apt: 'A-302', date: '11.10.2026 14:30', notes: 'İpoteka şərtləri ilə maraqlanır' },
+        { name: 'Leyla Əliyeva', phone: '+994 77 344 88 99', apt: 'A-504', date: '11.10.2026 16:45', notes: 'Baxış üçün görüş təyin edilməlidir' }
+      ];
+    }
+
+    function saveInquiry(lead) {
+      const list = getInquiries();
+      list.unshift(lead);
+      localStorage.setItem('azure_inquiries', JSON.stringify(list));
+      document.getElementById('leads-count').innerText = list.length;
+    }
+
+    let apartments = getApartments();
+    let selectedFloor = 3;
+    let currentSelectedAptCode = '302';
+
+    // ==========================================
+    // 2. THREE.JS 3D BUILDING SCENE
+    // ==========================================
+    let scene, camera, renderer, controls;
+    let buildingGroup, floorHighlights = [];
+    let isAutoRotating = false;
+    let isNightMode = false;
+    let hemiLight, dirLight, pointLight;
+
+    let skyTexture = null;
+
+    function init3D() {
+      const container = document.getElementById('canvas-container');
+      const width = container.clientWidth;
+      const height = container.clientHeight;
+
+      scene = new THREE.Scene();
+      
+      // Load Photorealistic 360 Daylight Sky Background & Atmosphere
+      const skyLoader = new THREE.TextureLoader();
+      skyLoader.load('sky_daylight.jpg', function (tex) {
+        tex.mapping = THREE.EquirectangularReflectionMapping;
+        skyTexture = tex;
+        scene.background = tex;
+        scene.environment = tex; // Photorealistic natural sky reflections on glass facades & water
+      });
+
+      // Subtle atmospheric horizon haze
+      scene.fog = new THREE.FogExp2(0xb0d4f1, 0.0035);
+
+      camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
+      // Close-Up initial camera position (starts right in front of the building facade)
+      camera.position.set(13.0, 7.8, 9.0);
+
+      renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: 'high-performance' });
+      renderer.setSize(width, height);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      renderer.shadowMap.enabled = true;
+      renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+      renderer.outputEncoding = THREE.sRGBEncoding;
+      renderer.toneMapping = THREE.ACESFilmicToneMapping;
+      renderer.toneMappingExposure = 1.35;
+      container.appendChild(renderer.domElement);
+
+      controls = new THREE.OrbitControls(camera, renderer.domElement);
+      controls.enableDamping = true;
+      controls.dampingFactor = 0.05;
+      controls.maxPolarAngle = Math.PI / 2 - 0.03;
+      controls.minDistance = 6;
+      controls.maxDistance = 80;
+      // Focus target directly on the residential building front facade
+      controls.target.set(3.5, 5.5, -3.2);
+
+      // Natural Sunny Day Lighting
+      hemiLight = new THREE.HemisphereLight(0xe0f2fe, 0x334d35, 1.2);
+      scene.add(hemiLight);
+
+      // Warm Golden-Hour Sunlight casting crisp soft shadows
+      dirLight = new THREE.DirectionalLight(0xfffaed, 2.3);
+      dirLight.position.set(32, 48, 28);
+      dirLight.castShadow = true;
+      dirLight.shadow.mapSize.width = 2048;
+      dirLight.shadow.mapSize.height = 2048;
+      dirLight.shadow.camera.near = 0.5;
+      dirLight.shadow.camera.far = 140;
+      dirLight.shadow.camera.left = -28;
+      dirLight.shadow.camera.right = 28;
+      dirLight.shadow.camera.top = 28;
+      dirLight.shadow.camera.bottom = -28;
+      dirLight.shadow.bias = -0.00015;
+      scene.add(dirLight);
+
+      // Ambient fill
+      const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
+      scene.add(ambientLight);
+
+      // Soft architectural bounce
+      const bounceLight = new THREE.DirectionalLight(0xbbf7d0, 0.4);
+      bounceLight.position.set(-20, -5, -20);
+      scene.add(bounceLight);
+
+      // Natural Landscape Ground (No grids, no lines, no cylinders)
+      createEnvironment();
+
+      // Building container
+      buildingGroup = new THREE.Group();
+      scene.add(buildingGroup);
+
+      // Load Real 3D Complex Model
+      loadBuildingModel();
+
+      window.addEventListener('resize', onWindowResize);
+      animate();
+    }
+
+    function createEnvironment() {
+      // Vast, seamless landscape lawn matching the residential park (completely line-free)
+      const groundGeo = new THREE.PlaneGeometry(600, 600);
+      const groundMat = new THREE.MeshStandardMaterial({
+        color: 0x365434, // Natural lush green lawn tone seamlessly extending the complex
+        roughness: 0.96,
+        metalness: 0.02
+      });
+      const ground = new THREE.Mesh(groundGeo, groundMat);
+      ground.rotation.x = -Math.PI / 2;
+      ground.position.y = -0.02;
+      ground.receiveShadow = true;
+      scene.add(ground);
+    }
+
+    let currentBuildingBounds = { w: 32, h: 28, d: 24, cx: 0, cz: 0 };
+
+    // Loads the actual 3D model with proper centering and materials
+    function loadBuildingModel() {
+      const loader = new THREE.GLTFLoader();
+      const indicator = document.getElementById('loading-indicator');
+      const text = document.getElementById('loading-text');
+
+      function tryLoad(url, onFail) {
+        loader.load(
+          encodeURI(url),
+          function (gltf) {
+            const model = gltf.scene;
+            model.traverse((node) => {
+              if (node.isMesh) {
+                node.castShadow = true;
+                node.receiveShadow = true;
+                if (node.material) {
+                  node.material.roughness = 0.65;
+                  node.material.metalness = 0.15;
+                  node.material.needsUpdate = true;
+                }
+              }
+            });
+
+            // Center and scale model properly
+            const box = new THREE.Box3().setFromObject(model);
+            const center = new THREE.Vector3();
+            box.getCenter(center);
+            const size = new THREE.Vector3();
+            box.getSize(size);
+            const maxDim = Math.max(size.x, size.y, size.z);
+            const scale = 38 / maxDim;
+            model.scale.set(scale, scale, scale);
+
+            // Recompute box after scale and center cleanly
+            box.setFromObject(model);
+            box.getCenter(center);
+            model.position.x = -center.x;
+            model.position.y = -box.min.y;
+            model.position.z = -center.z;
+
+            buildingGroup.add(model);
+            indicator.style.display = 'none';
+
+            // Get computed bounds after positioning
+            const finalBox = new THREE.Box3().setFromObject(model);
+            const finalSize = new THREE.Vector3();
+            finalBox.getSize(finalSize);
+            const finalCenter = new THREE.Vector3();
+            finalBox.getCenter(finalCenter);
+
+            currentBuildingBounds = {
+              w: finalSize.x,
+              h: finalSize.y,
+              d: finalSize.z,
+              cx: finalCenter.x,
+              cz: finalCenter.z
+            };
+
+            // Create interactive yellow hover hitboxes around the residential tower floors
+            createFloorHitboxes(currentBuildingBounds);
+
+            // Close-up hero framing right in front of the Torre Garten building
+            controls.target.set(0, finalSize.y * 0.42, 0);
+            camera.position.set(finalSize.x * 0.72, finalSize.y * 0.52, finalSize.z * 1.15);
+            controls.update();
+
+            showToast('Torre Garten 3D Binası uğurla yükləndi!');
+          },
+          function (xhr) {
+            if (xhr.total > 0) {
+              const percent = Math.round((xhr.loaded / xhr.total) * 100);
+              text.innerText = `3D Model yüklənir: ${percent}%`;
+            }
+          },
+          function (error) {
+            if (onFail) onFail();
+          }
+        );
+      }
+
+      // 1. Try Torre Garten GLB first (user's requested model)
+      tryLoad('torre_garten.glb', () => {
+        // 2. Try optimized GLB
+        tryLoad('building_optimized.glb', () => {
+          // 3. Try raw original GLB
+          tryLoad('apartment building 3d model.glb', () => {
+            indicator.style.display = 'none';
+            showToast('3D Model yüklənərkən xəta baş verdi.');
+          });
+        });
+      });
+    }
+
+    // ==========================================
+    // 3D FLOOR HOVER & HIGHLIGHT LOGIC (YELLOW GLOW)
+    // ==========================================
+    let floorHitboxes = [];
+    const floorRaycaster = new THREE.Raycaster();
+    const floorMouse = new THREE.Vector2();
+    let currentHoveredFloorNum = null;
+
+    function createFloorHitboxes(bounds) {
+      // Clear previous hitboxes if any
+      floorHitboxes.forEach(m => buildingGroup.remove(m));
+      floorHitboxes = [];
+
+      const b = bounds || currentBuildingBounds;
+      const floorCount = 14;
+      const yStart = b.h * 0.14; // Above the ground podium terrace
+      const yEnd = b.h * 0.94;   // Below the rooftop pergola
+      const floorH = (yEnd - yStart) / floorCount;
+
+      for (let f = 1; f <= floorCount; f++) {
+        const yCenter = yStart + (f - 0.5) * floorH;
+
+        const geo = new THREE.BoxGeometry(b.w * 0.96, floorH * 0.94, b.d * 0.96);
+        // Luxury golden yellow hover material
+        const mat = new THREE.MeshStandardMaterial({
+          color: 0xfacc15,       // Vibrant golden yellow
+          emissive: 0xd97706,    // Warm amber glow
+          emissiveIntensity: 0,
+          transparent: true,
+          opacity: 0,
+          roughness: 0.2,
+          metalness: 0.1,
+          depthWrite: false
+        });
+
+        const mesh = new THREE.Mesh(geo, mat);
+        mesh.position.set(b.cx, yCenter, b.cz);
+        mesh.userData = { floor: f };
+
+        // Crisp glowing golden wireframe edge border
+        const edges = new THREE.EdgesGeometry(geo);
+        const lineMat = new THREE.LineBasicMaterial({
+          color: 0xfef08a,
+          transparent: true,
+          opacity: 0,
+          linewidth: 2
+        });
+        const line = new THREE.LineSegments(edges, lineMat);
+        mesh.add(line);
+        mesh.userData.line = line;
+
+        buildingGroup.add(mesh);
+        floorHitboxes.push(mesh);
+      }
+    }
+
+    function highlightFloorYellow(floorNum) {
+      floorHitboxes.forEach(mesh => {
+        if (mesh.userData.floor === floorNum) {
+          mesh.material.opacity = 0.42;
+          mesh.material.emissiveIntensity = 0.75;
+          if (mesh.userData.line) mesh.userData.line.material.opacity = 0.95;
+        } else {
+          mesh.material.opacity = 0;
+          mesh.material.emissiveIntensity = 0;
+          if (mesh.userData.line) mesh.userData.line.material.opacity = 0;
+        }
+      });
+    }
+
+    function clearFloorYellow() {
+      floorHitboxes.forEach(mesh => {
+        mesh.material.opacity = 0;
+        mesh.material.emissiveIntensity = 0;
+        if (mesh.userData.line) mesh.userData.line.material.opacity = 0;
+      });
+    }
+
+    // Raycast on mousemove across 3D building
+    window.addEventListener('mousemove', (e) => {
+      const tooltip = document.getElementById('floor-hover-tooltip');
+      const isPlanOpen = document.getElementById('plan-view-modal')?.style.display === 'flex';
+      const isAdminOpen = document.getElementById('admin-modal')?.style.display === 'flex';
+      const isInquiryOpen = document.getElementById('inquiry-modal')?.style.display === 'flex';
+
+      if (isTourActive || isPlanOpen || isAdminOpen || isInquiryOpen) {
+        if (tooltip) tooltip.style.display = 'none';
+        return;
+      }
+
+      const container = document.getElementById('canvas-container');
+      const rect = container.getBoundingClientRect();
+      floorMouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+      floorMouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+
+      floorRaycaster.setFromCamera(floorMouse, camera);
+      const intersects = floorRaycaster.intersectObjects(floorHitboxes);
+
+      if (intersects.length > 0) {
+        const hit = intersects[0].object;
+        const f = hit.userData.floor;
+
+        if (currentHoveredFloorNum !== f) {
+          currentHoveredFloorNum = f;
+          highlightFloorYellow(f);
+        }
+
+        tooltip.style.display = 'block';
+        tooltip.style.left = (e.clientX + 16) + 'px';
+        tooltip.style.top = (e.clientY + 16) + 'px';
+        tooltip.innerHTML = `<strong>🏢 Mərtəbə ${f}</strong> • İçinə girmək üçün klikləyin ➔`;
+        document.body.style.cursor = 'pointer';
+      } else {
+        if (currentHoveredFloorNum !== null) {
+          currentHoveredFloorNum = null;
+          clearFloorYellow();
+          tooltip.style.display = 'none';
+          document.body.style.cursor = 'default';
+        }
+      }
+    });
+
+    // Clicking floor directly in 3D enters inside that floor!
+    window.addEventListener('click', (e) => {
+      if (isTourActive || document.getElementById('plan-view-modal').style.display === 'flex') return;
+
+      if (currentHoveredFloorNum !== null) {
+        enterFloor(currentHoveredFloorNum);
+      }
+    });
+
+    function enterFloor(floorNum) {
+      if (!floorNum) return;
+      selectedFloor = floorNum;
+
+      const tooltip = document.getElementById('floor-hover-tooltip');
+      if (tooltip) tooltip.style.display = 'none';
+
+      // Update Floor Selector Buttons
+      document.querySelectorAll('.floor-btn').forEach(btn => {
+        const f = parseInt(btn.getAttribute('data-floor'));
+        if (f === floorNum) btn.classList.add('active');
+        else btn.classList.remove('active');
+      });
+
+      // Highlight selected floor in yellow
+      highlightFloorYellow(floorNum);
+
+      // Smooth camera fly-in into the floor facade
+      const yStart = currentBuildingBounds.h * 0.14;
+      const yEnd = currentBuildingBounds.h * 0.94;
+      const fH = (yEnd - yStart) / 14;
+      const floorY = yStart + (floorNum - 0.5) * fH;
+
+      smoothMoveCamera(
+        new THREE.Vector3(currentBuildingBounds.cx + 3.5, floorY + 1.2, currentBuildingBounds.cz + 5.5),
+        new THREE.Vector3(currentBuildingBounds.cx, floorY, currentBuildingBounds.cz)
+      );
+
+      // Seamlessly transition right inside the floor plan
+      setTimeout(() => {
+        switchMainView('2d');
+        update2DPlanView(floorNum);
+      }, 350);
+    }
+
+    function initFloorButtons() {
+      const container = document.getElementById('floor-btn-list');
+      if (container) {
+        container.innerHTML = '';
+        for (let f = 14; f >= 1; f--) {
+          const btn = document.createElement('button');
+          btn.className = `floor-btn ${f === selectedFloor ? 'active' : ''}`;
+          btn.setAttribute('data-floor', f);
+          btn.onclick = () => selectFloor(f);
+          const tag = f === 14 ? 'PNT' : (f === 13 ? 'VIP' : (f === 1 ? 'LOB' : 'MƏR'));
+          btn.innerHTML = `${f}<span>${tag}</span>`;
+          btn.addEventListener('mouseenter', () => highlightFloorYellow(f));
+          btn.addEventListener('mouseleave', () => {
+            if (currentHoveredFloorNum === null) {
+              if (selectedFloor > 0) highlightFloorYellow(selectedFloor);
+              else clearFloorYellow();
+            }
+          });
+          container.appendChild(btn);
+        }
+      }
+
+      // Populate 2D Plan Floor Dropdown Selector
+      const planSelect = document.getElementById('plan-floor-select');
+      if (planSelect) {
+        planSelect.innerHTML = '';
+        for (let f = 14; f >= 1; f--) {
+          const opt = document.createElement('option');
+          opt.value = f;
+          const tag = f === 14 ? 'Penthouse' : (f === 13 ? 'VIP Suite' : (f === 1 ? 'Lobi Mərtəbəsi' : 'Yaşayış'));
+          opt.text = `Mərtəbə ${f} (${tag})`;
+          if (f === (selectedFloor > 0 ? selectedFloor : 3)) opt.selected = true;
+          planSelect.appendChild(opt);
+        }
+      }
+    }
+
+    function changePlanFloor(val) {
+      const f = parseInt(val);
+      if (f >= 1 && f <= 14) {
+        selectFloor(f);
+        update2DPlanView(f);
+      }
+    }
+
+    function stepPlanFloor(delta) {
+      let nextF = (selectedFloor > 0 ? selectedFloor : 3) + delta;
+      if (nextF < 1) nextF = 1;
+      if (nextF > 14) nextF = 14;
+      const planSelect = document.getElementById('plan-floor-select');
+      if (planSelect) planSelect.value = nextF;
+      changePlanFloor(nextF);
+    }
+
+    let isFurnitureVisible = true;
+    function toggleFurnitureLayer() {
+      isFurnitureVisible = !isFurnitureVisible;
+      const svg = document.getElementById('plan-svg-elem');
+      const btn = document.getElementById('btn-toggle-furniture');
+      if (svg) svg.classList.toggle('hide-furniture', !isFurnitureVisible);
+      if (btn) {
+        btn.innerHTML = isFurnitureVisible 
+          ? '<i data-lucide="armchair" style="width:16px; height:16px;"></i> Mebellər' 
+          : '<i data-lucide="compass" style="width:16px; height:16px;"></i> CAD Çertyoj';
+        if (window.lucide) lucide.createIcons();
+      }
+    }
+
+    let isDroneMode = false;
+    let droneAngle = 0;
+
+    function toggleDroneFlyover() {
+      isDroneMode = !isDroneMode;
+      const btn = document.getElementById('btn-drone');
+      if (btn) btn.classList.toggle('active', isDroneMode);
+      if (isDroneMode) {
+        showToast('🎬 Kinematik Dron Baxışı aktivdir');
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      initFloorButtons();
+    });
+
+    // Smooth camera transition function
+    let cameraTargetPos = null;
+    let controlsTargetPos = null;
+
+    function smoothMoveCamera(newCamPos, newControlsTarget) {
+      cameraTargetPos = newCamPos;
+      controlsTargetPos = newControlsTarget;
+    }
+
+    function onWindowResize() {
+      const container = document.getElementById('canvas-container');
+      if (container && camera && renderer) {
+        camera.aspect = container.clientWidth / container.clientHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(container.clientWidth, container.clientHeight);
+      }
+      if (tourRenderer && tourCamera) {
+        tourCamera.aspect = window.innerWidth / window.innerHeight;
+        tourCamera.updateProjectionMatrix();
+        tourRenderer.setSize(window.innerWidth, window.innerHeight);
+        tourRenderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+      }
+    }
+
+    function animate() {
+      requestAnimationFrame(animate);
+
+      // Smooth camera transition animation
+      if (cameraTargetPos) {
+        camera.position.lerp(cameraTargetPos, 0.05);
+        if (camera.position.distanceTo(cameraTargetPos) < 0.08) cameraTargetPos = null;
+      }
+      if (controlsTargetPos) {
+        controls.target.lerp(controlsTargetPos, 0.05);
+        if (controls.target.distanceTo(controlsTargetPos) < 0.08) controlsTargetPos = null;
+      }
+
+      if (isDroneMode) {
+        droneAngle += 0.005;
+        const radius = 26;
+        const droneH = 13 + Math.sin(droneAngle * 0.4) * 4;
+        camera.position.x = currentBuildingBounds.cx + Math.cos(droneAngle) * radius;
+        camera.position.z = currentBuildingBounds.cz + Math.sin(droneAngle) * radius;
+        camera.position.y = droneH;
+        controls.target.set(currentBuildingBounds.cx, currentBuildingBounds.h * 0.45, currentBuildingBounds.cz);
+      }
+
+      controls.update();
+      if (isAutoRotating && !isDroneMode) {
+        buildingGroup.rotation.y += 0.0025;
+      }
+      renderer.render(scene, camera);
+    }
+
+    // ==========================================
+    // 3. UI INTERACTION & FLOOR SELECTION
+    // ==========================================
+    function selectFloor(floorNum) {
+      selectedFloor = floorNum;
+
+      // Update Floor Selector Buttons
+      document.querySelectorAll('.floor-btn').forEach(btn => {
+        const f = parseInt(btn.getAttribute('data-floor'));
+        if (f === floorNum) btn.classList.add('active');
+        else btn.classList.remove('active');
+      });
+
+      // Highlight the selected floor persistently in yellow
+      if (floorNum > 0) {
+        highlightFloorYellow(floorNum);
+        const yStart = currentBuildingBounds.h * 0.14;
+        const yEnd = currentBuildingBounds.h * 0.94;
+        const fH = (yEnd - yStart) / 14;
+        const floorY = yStart + (floorNum - 0.5) * fH;
+        smoothMoveCamera(
+          new THREE.Vector3(currentBuildingBounds.w * 0.72, floorY + 2.5, currentBuildingBounds.d * 1.05),
+          new THREE.Vector3(currentBuildingBounds.cx, floorY, currentBuildingBounds.cz)
+        );
+        document.getElementById('floor-badge').style.display = 'block';
+        document.getElementById('badge-floor-title').innerText = `Mərtəbə ${floorNum}`;
+        renderBadgeApartments(floorNum);
+      } else {
+        clearFloorYellow();
+        smoothMoveCamera(
+          new THREE.Vector3(currentBuildingBounds.w * 0.95, currentBuildingBounds.h * 0.7, currentBuildingBounds.d * 1.3),
+          new THREE.Vector3(currentBuildingBounds.cx, currentBuildingBounds.h * 0.4, currentBuildingBounds.cz)
+        );
+        document.getElementById('floor-badge').style.display = 'none';
+      }
+
+      // Update 2D Floor Plan Data
+      update2DPlanView(floorNum > 0 ? floorNum : 3);
+    }
+
+    function renderBadgeApartments(floorNum) {
+      const container = document.getElementById('badge-apt-list');
+      container.innerHTML = '';
+      const list = apartments.filter(a => a.floor === floorNum);
+
+      list.forEach(apt => {
+        const card = document.createElement('div');
+        card.className = 'mini-apt-card';
+        card.onclick = () => {
+          selectApartmentByCode(apt.number);
+          switchMainView('2d');
+        };
+
+        const statusClass = `status-${apt.status}`;
+        const statusText = apt.status === 'available' ? 'Satışda' : (apt.status === 'reserved' ? 'Rezervdə' : 'Satılıb');
+
+        card.innerHTML = `
+          <div class="mini-apt-num">
+            <span>Mənzil ${apt.number}</span>
+            <span class="status-pill ${statusClass}">${statusText}</span>
+          </div>
+          <div class="mini-apt-meta">${apt.rooms} Otaq • ${apt.area} m²</div>
+          <div style="font-size:12px; font-weight:700; color:var(--accent); margin-top:4px;">${formatMoney(apt.price)} AZN</div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    function switchMainView(view) {
+      const tooltip = document.getElementById('floor-hover-tooltip');
+      if (tooltip) tooltip.style.display = 'none';
+
+      const tab3d = document.getElementById('tab-3d');
+      const tab2d = document.getElementById('tab-2d');
+      const tabTour = document.getElementById('tab-tour');
+      const planModal = document.getElementById('plan-view-modal');
+      const tourModal = document.getElementById('tour-modal');
+
+      if (view === '3d') {
+        tab3d.classList.add('active');
+        tab2d.classList.remove('active');
+        if (tabTour) tabTour.classList.remove('active');
+        planModal.style.display = 'none';
+        if (tourModal && tourModal.style.display === 'block') closeTourModal();
+      } else if (view === '2d') {
+        tab2d.classList.add('active');
+        tab3d.classList.remove('active');
+        if (tabTour) tabTour.classList.remove('active');
+        planModal.style.display = 'flex';
+        if (tourModal && tourModal.style.display === 'block') closeTourModal();
+        update2DPlanView(selectedFloor > 0 ? selectedFloor : 3);
+      } else if (view === 'tour') {
+        openTourModal(currentSelectedAptCode || '302');
+      }
+      if (window.lucide) lucide.createIcons();
+    }
+
+    // ==========================================
+    // 4. 2D FLOOR PLAN LOGIC
+    // ==========================================
+    let currentSelectedRoomKey = 'living';
+
+    function selectApartmentSector(suffix) {
+      const floor = selectedFloor > 0 ? selectedFloor : 3;
+      const aptNum = `${floor}${suffix}`;
+      selectApartmentByCode(aptNum);
+
+      // Auto-highlight living room in this apartment
+      const roomEl = document.querySelector(`.svg-room-zone[data-apt="${suffix}"][data-room-key="living"]`);
+      if (roomEl) {
+        triggerElementClick(roomEl);
+      }
+    }
+
+    function selectRoom(el, aptSuffix, roomKey, roomTitle, roomArea) {
+      const floor = selectedFloor > 0 ? selectedFloor : 3;
+      const aptNum = `${floor}${aptSuffix}`;
+
+      // Visual highlight for the clicked room
+      document.querySelectorAll('.svg-room-zone').forEach(z => z.classList.remove('active'));
+      if (el) {
+        el.classList.add('active');
+      }
+
+      currentSelectedRoomKey = roomKey || 'living';
+      selectApartmentByCode(aptNum);
+
+      // Update room badge in sidebar
+      const roomBadge = document.getElementById('side-selected-room-badge');
+      const roomText = document.getElementById('side-room-text');
+      if (roomBadge && roomText) {
+        roomBadge.style.display = 'flex';
+        roomText.innerHTML = `<strong>Seçilmiş Otaq:</strong> ${roomTitle} (${roomArea} m²)`;
+      }
+
+      // Update tour button label with room name
+      const tourBtn = document.getElementById('side-btn-tour');
+      if (tourBtn) {
+        tourBtn.innerHTML = `<i data-lucide="eye" style="width:18px; height:18px;"></i> ${roomTitle} — 360° Tura Başla`;
+      }
+      if (window.lucide) lucide.createIcons();
+    }
+
+    function update2DPlanView(floorNum) {
+      document.getElementById('plan-modal-title').innerText = `Mərtəbə ${floorNum} — Memarlıq və Mənzil Planı`;
+      const planSelect = document.getElementById('plan-floor-select');
+      if (planSelect && planSelect.value != floorNum) {
+        planSelect.value = floorNum;
+      }
+      const floorApts = apartments.filter(a => a.floor === floorNum);
+
+      floorApts.forEach((apt, idx) => {
+        const titleEl = document.getElementById(`svg-title-${idx}`);
+        const metaEl = document.getElementById(`svg-meta-${idx}`);
+        const priceEl = document.getElementById(`svg-price-${idx}`);
+        const zoneEl = document.getElementById(`svg-zone-${idx}`);
+
+        if (titleEl && apt) {
+          titleEl.textContent = `Mənzil ${apt.number}`;
+          metaEl.textContent = `• ${apt.rooms} Otaq • ${apt.area} m²`;
+          priceEl.textContent = `${formatMoney(apt.price)} AZN`;
+
+          // Zone border color based on status
+          const rect = zoneEl ? zoneEl.querySelector('rect') : null;
+          if (rect) {
+            if (apt.status === 'available') {
+              rect.setAttribute('stroke', '#10b981');
+            } else if (apt.status === 'reserved') {
+              rect.setAttribute('stroke', '#f59e0b');
+            } else {
+              rect.setAttribute('stroke', '#ef4444');
+            }
+          }
+        }
+      });
+
+      // Default select first apartment & its living room safely
+      const firstRoom = document.querySelector('.svg-room-zone[data-apt="01"][data-room-key="living"]');
+      if (firstRoom) {
+        selectRoom(firstRoom, '01', 'living', 'Qonaq Otağı', 28.5);
+      } else if (floorApts.length > 0) {
+        selectApartmentByCode(floorApts[0].number);
+      }
+    }
+
+    function selectApartmentByCode(code) {
+      const apt = apartments.find(a => a.number === String(code) || a.id === String(code));
+      if (!apt) return;
+
+      currentSelectedAptCode = apt.number;
+
+      // Update Sidebar Card
+      document.getElementById('side-apt-num').innerText = `Mənzil ${apt.number}`;
+      document.getElementById('side-apt-subtitle').innerText = `Mərtəbə ${apt.floor} • Şəhər və Dəniz Panoraması`;
+      document.getElementById('side-price').innerText = `${formatMoney(apt.price)} AZN`;
+      document.getElementById('side-price-m2').innerText = `1 m² = ${formatMoney(Math.round(apt.price / apt.area))} AZN`;
+      document.getElementById('side-area').innerText = `${apt.area} m²`;
+      document.getElementById('side-rooms').innerText = `${apt.rooms} Otaqlı`;
+
+      const pill = document.getElementById('side-status-pill');
+      pill.className = `status-pill status-${apt.status}`;
+      pill.innerText = apt.status === 'available' ? 'Satışda' : (apt.status === 'reserved' ? 'Rezervdə' : 'Satılıb');
+    }
+
+    // ==========================================
+    // 5. 360° VIRTUAL TOUR (THREE.JS SPHERE)
+    // ==========================================
+    let tourScene, tourCamera, tourRenderer;
+    let isTourActive = false;
+    let tourSphere;
+    let isTourDragging = false;
+    let tourPrevX = 0, tourPrevY = 0;
+    let tourLon = 90, tourLat = 0;
+    let currentHotspots = [];
+    let currentTourRoom = 'living';
+
+    const ROOM_HOTSPOTS = {
+      'living': [
+        {
+          target: 'bedroom',
+          lon: 65,
+          lat: -4,
+          icon: '🚪',
+          title: 'Qapıdan Keç: Yataq Otağı',
+          sub: 'Master Yataq Otağı',
+          enterLon: -115
+        },
+        {
+          target: 'panoramic',
+          lon: -15,
+          lat: -4,
+          icon: '🚪',
+          title: 'Qapıdan Keç: Panoramik Süit',
+          sub: '8K Lüks Terras Zalı',
+          enterLon: 80
+        },
+        {
+          target: 'lounge',
+          lon: -85,
+          lat: -4,
+          icon: '🚪',
+          title: 'Qapıdan Keç: Şöminə Zalı',
+          sub: 'Taxta Lounge & Bilyard',
+          enterLon: -80
+        }
+      ],
+      'bedroom': [
+        {
+          target: 'living',
+          lon: -115,
+          lat: -4,
+          icon: '🚪',
+          title: 'Qapıdan Keç: Qonaq Zalına Qayıt',
+          sub: 'Əsas Lüks Qonaq Zalı',
+          enterLon: 65
+        },
+        {
+          target: 'ensuite',
+          lon: 75,
+          lat: -4,
+          icon: '🚪',
+          title: 'Qapıdan Keç: En-Suite Vanna',
+          sub: 'Lüks Vanna Otağı',
+          enterLon: 0
+        },
+        {
+          target: 'panoramic',
+          lon: 0,
+          lat: -4,
+          icon: '🚪',
+          title: 'Qapıdan Keç: Panoramik Süit',
+          sub: '8K Lüks Terras Zalı',
+          enterLon: -90
+        }
+      ],
+      'panoramic': [
+        {
+          target: 'living',
+          lon: 80,
+          lat: -4,
+          icon: '🚪',
+          title: 'Qapıdan Keç: Qonaq Zalına Keçid',
+          sub: '8K Əsas Qonaq Zalı',
+          enterLon: -15
+        },
+        {
+          target: 'bedroom',
+          lon: -90,
+          lat: -4,
+          icon: '🚪',
+          title: 'Qapıdan Keç: Yataq Otağına Keçid',
+          sub: '8K Master Yataq Otağı',
+          enterLon: 0
+        }
+      ],
+      'lounge': [
+        {
+          target: 'living',
+          lon: -80,
+          lat: -4,
+          icon: '🚪',
+          title: 'Qapıdan Keç: Qonaq Zalına Qayıt',
+          sub: 'Əsas Qonaq Zalı',
+          enterLon: -85
+        },
+        {
+          target: 'bedroom',
+          lon: 80,
+          lat: -4,
+          icon: '🚪',
+          title: 'Qapıdan Keç: Yataq Otağına Keçid',
+          sub: 'Master Yataq Otağı',
+          enterLon: -115
+        }
+      ],
+      'ensuite': [
+        {
+          target: 'bedroom',
+          lon: 0,
+          lat: -4,
+          icon: '🚪',
+          title: 'Qapıdan Keç: Yataq Otağına Qayıt',
+          sub: 'Master Yataq Otağı',
+          enterLon: 75
+        }
+      ]
+    };
+
+    function initTourScene() {
+      const container = document.getElementById('tour-canvas-container');
+      tourScene = new THREE.Scene();
+      
+      // FOV 50: perfectly flat, natural human eye perspective with ZERO barrel/bubble distortion
+      tourCamera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 1, 1200);
+      tourCamera.target = new THREE.Vector3(0, 0, 0);
+
+      tourRenderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
+      tourRenderer.setSize(window.innerWidth, window.innerHeight);
+      tourRenderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+      tourRenderer.outputEncoding = THREE.sRGBEncoding;
+      tourRenderer.toneMapping = THREE.ACESFilmicToneMapping;
+      tourRenderer.toneMappingExposure = 1.1;
+      container.appendChild(tourRenderer.domElement);
+
+      // High-density Equirectangular Sphere (500 units radius, 128x96 segments for razor precision)
+      const sphereGeo = new THREE.SphereGeometry(500, 128, 96);
+      sphereGeo.scale(-1, 1, 1); // Invert faces inside
+
+      const sphereMat = new THREE.MeshBasicMaterial();
+      tourSphere = new THREE.Mesh(sphereGeo, sphereMat);
+      tourScene.add(tourSphere);
+
+      // Initial eye-level camera view facing the grand room center
+      tourLon = 0;
+      tourLat = 0;
+
+      // Smooth dragging & panning
+      container.addEventListener('mousedown', (e) => {
+        isTourDragging = true;
+        tourPrevX = e.clientX;
+        tourPrevY = e.clientY;
+      });
+      window.addEventListener('mousemove', (e) => {
+        if (!isTourDragging || !isTourActive) return;
+        tourLon += (tourPrevX - e.clientX) * 0.12;
+        tourLat += (e.clientY - tourPrevY) * 0.12;
+        tourLat = Math.max(-75, Math.min(75, tourLat));
+        tourPrevX = e.clientX;
+        tourPrevY = e.clientY;
+      });
+      window.addEventListener('mouseup', () => { isTourDragging = false; });
+
+      // Smooth mouse-wheel zoom without distortion (bounds between 38 and 62 degrees)
+      container.addEventListener('wheel', (e) => {
+        e.preventDefault();
+        tourCamera.fov = Math.max(38, Math.min(62, tourCamera.fov + e.deltaY * 0.03));
+        tourCamera.updateProjectionMatrix();
+      }, { passive: false });
+
+      // Touch events for mobile
+      container.addEventListener('touchstart', (e) => {
+        if (e.touches.length === 1) {
+          isTourDragging = true;
+          tourPrevX = e.touches[0].clientX;
+          tourPrevY = e.touches[0].clientY;
+        }
+      });
+      window.addEventListener('touchmove', (e) => {
+        if (!isTourDragging || !isTourActive) return;
+        tourLon += (tourPrevX - e.touches[0].clientX) * 0.16;
+        tourLat += (e.touches[0].clientY - tourPrevY) * 0.16;
+        tourLat = Math.max(-75, Math.min(75, tourLat));
+        tourPrevX = e.touches[0].clientX;
+        tourPrevY = e.touches[0].clientY;
+      });
+      window.addEventListener('touchend', () => { isTourDragging = false; });
+
+      animateTour();
+    }
+
+    const tourTextureLoader = new THREE.TextureLoader();
+    const tourImageMap = {
+      'living': 'real_lythwood_living.jpg',      // 8192x4096 Authentic 8K Grand Living Room
+      'bedroom': 'real_hotel_bedroom.jpg',       // 8192x4096 Authentic 8K Luxury Master Bedroom
+      'panoramic': 'real_panoramic_suite.jpg',   // 8192x4096 Authentic 8K Grand Panoramic Suite
+      'lounge': 'real_wooden_lounge.jpg',        // 8192x4096 Authentic 8K Wooden Lounge & Fireplace
+      'ensuite': 'real_ensuite_bedroom.jpg'      // 8192x4096 Authentic 8K Luxury En-suite Room
+    };
+
+    function switchTourRoom(roomType) {
+      currentTourRoom = roomType;
+      document.querySelectorAll('.room-btn').forEach(btn => btn.classList.remove('active'));
+      const activeBtn = Array.from(document.querySelectorAll('.room-btn')).find(b => b.getAttribute('onclick')?.includes(roomType));
+      if (activeBtn) activeBtn.classList.add('active');
+
+      const roomNames = {
+        'living': 'Lüks Qonaq Zalı (8K Ultra-HD)',
+        'bedroom': 'Master Yataq Otağı (8K Ultra-HD)',
+        'panoramic': 'Panoramik Terras Süiti (8K Ultra-HD)',
+        'lounge': 'Şöminə & Bilyard Zalı (8K Ultra-HD)',
+        'ensuite': 'En-Suite Vanna Otağı (8K Ultra-HD)'
+      };
+
+      document.getElementById('tour-apt-title').innerText = `Mənzil ${currentSelectedAptCode} — ${roomNames[roomType] || 'Otaq'}`;
+      
+      const rawPath = tourImageMap[roomType] || 'real_lythwood_living.jpg';
+      const cacheBuster = '?v=8k_v1';
+      const imgPath = rawPath + cacheBuster;
+
+      tourTextureLoader.load(
+        imgPath,
+        function(tex) {
+          tex.encoding = THREE.sRGBEncoding;
+          tex.generateMipmaps = true;
+          tex.minFilter = THREE.LinearMipmapLinearFilter;
+          tex.magFilter = THREE.LinearFilter;
+          if (tourRenderer && tourRenderer.capabilities) {
+            tex.anisotropy = tourRenderer.capabilities.getMaxAnisotropy();
+          }
+          tourSphere.material.map = tex;
+          tourSphere.material.needsUpdate = true;
+        }
+      );
+
+      // Update Radar Mini-Map
+      document.querySelectorAll('.radar-room').forEach(r => r.classList.remove('active'));
+      const activeRadarRoom = document.getElementById(`radar-${roomType}`);
+      if (activeRadarRoom) activeRadarRoom.classList.add('active');
+
+      const radarCoords = {
+        'living': { x: 50, y: 40, name: 'Qonaq Zalı' },
+        'bedroom': { x: 125, y: 40, name: 'Master Yataq' },
+        'panoramic': { x: 175, y: 65, name: 'Terras Süiti' },
+        'lounge': { x: 50, y: 97, name: 'Şöminə Zalı' },
+        'ensuite': { x: 125, y: 97, name: 'En-Suite Vanna' }
+      };
+
+      const coord = radarCoords[roomType] || { x: 50, y: 40, name: 'Otaq' };
+      const userGroup = document.getElementById('radar-user-group');
+      if (userGroup) {
+        userGroup.setAttribute('transform', `translate(${coord.x}, ${coord.y})`);
+      }
+      const radarTitle = document.getElementById('radar-room-name');
+      if (radarTitle) radarTitle.innerText = coord.name;
+
+      // Recreate Doorway Hotspots for this room
+      renderRoomHotspots(roomType);
+    }
+
+    let isTourAutoRotating = false;
+
+    function toggleTourAutoRotate() {
+      isTourAutoRotating = !isTourAutoRotating;
+      const btn = document.getElementById('btn-tour-autorotate');
+      if (btn) btn.classList.toggle('active', isTourAutoRotating);
+    }
+
+    function toggleTourFullscreen() {
+      const modal = document.getElementById('tour-modal');
+      if (!document.fullscreenElement) {
+        if (modal.requestFullscreen) modal.requestFullscreen();
+      } else {
+        if (document.exitFullscreen) document.exitFullscreen();
+      }
+    }
+
+    // Creates interactive doorway walkthrough hotspots
+    function renderRoomHotspots(roomType) {
+      const container = document.getElementById('hotspots-container');
+      container.innerHTML = '';
+      currentHotspots = [];
+
+      const list = ROOM_HOTSPOTS[roomType] || [];
+      list.forEach(hs => {
+        const el = document.createElement('div');
+        el.className = 'door-hotspot';
+        el.innerHTML = `
+          <div class="hotspot-icon">${hs.icon}</div>
+          <div>
+            <div class="hotspot-title">${hs.title}</div>
+            <div class="hotspot-sub">${hs.sub}</div>
+          </div>
+          <span style="font-size:14px; opacity:0.8;">➔</span>
+        `;
+
+        el.onclick = (e) => {
+          e.stopPropagation();
+          walkToRoom(hs.target, hs.enterLon);
+        };
+
+        container.appendChild(el);
+        currentHotspots.push({ el: el, data: hs });
+      });
+    }
+
+    // Smooth forward walkthrough transition into the next room
+    function walkToRoom(targetRoom, targetLon) {
+      const overlay = document.getElementById('tour-transition-overlay');
+      overlay.style.opacity = '1';
+
+      // Step forward zoom animation
+      const startFov = tourCamera.fov;
+      let progress = 0;
+      const stepInterval = setInterval(() => {
+        progress += 0.15;
+        tourCamera.fov = THREE.MathUtils.lerp(startFov, 34, progress);
+        tourCamera.updateProjectionMatrix();
+
+        if (progress >= 1) {
+          clearInterval(stepInterval);
+
+          // Change to target room
+          switchTourRoom(targetRoom);
+          if (targetLon !== undefined) tourLon = targetLon;
+          tourLat = 0;
+
+          setTimeout(() => {
+            overlay.style.opacity = '0';
+            // Smoothly ease back to natural 50 FOV
+            let backProgress = 0;
+            const backInterval = setInterval(() => {
+              backProgress += 0.15;
+              tourCamera.fov = THREE.MathUtils.lerp(34, 50, backProgress);
+              tourCamera.updateProjectionMatrix();
+              if (backProgress >= 1) clearInterval(backInterval);
+            }, 20);
+          }, 160);
+        }
+      }, 20);
+    }
+
+    // Projects 3D hotspot spherical coordinates onto 2D screen positions
+    function updateHotspotsPosition() {
+      if (!isTourActive || !tourCamera || currentHotspots.length === 0) return;
+
+      const container = document.getElementById('tour-canvas-container');
+      const w = container.clientWidth;
+      const h = container.clientHeight;
+
+      currentHotspots.forEach(hs => {
+        const phi = THREE.MathUtils.degToRad(90 - hs.data.lat);
+        const theta = THREE.MathUtils.degToRad(hs.data.lon);
+        const pos = new THREE.Vector3(
+          480 * Math.sin(phi) * Math.cos(theta),
+          480 * Math.cos(phi),
+          480 * Math.sin(phi) * Math.sin(theta)
+        );
+
+        pos.project(tourCamera);
+
+        // Render only if hotspot is in front of the camera
+        if (pos.z < 1 && pos.x >= -1.2 && pos.x <= 1.2 && pos.y >= -1.2 && pos.y <= 1.2) {
+          const screenX = (pos.x * 0.5 + 0.5) * w;
+          const screenY = (-(pos.y * 0.5) + 0.5) * h;
+          hs.el.style.display = 'flex';
+          hs.el.style.transform = `translate(-50%, -50%) translate(${screenX}px, ${screenY}px)`;
+        } else {
+          hs.el.style.display = 'none';
+        }
+      });
+    }
+
+    function openTourModal(aptCode, startRoom) {
+      const tooltip = document.getElementById('floor-hover-tooltip');
+      if (tooltip) tooltip.style.display = 'none';
+
+      const modal = document.getElementById('tour-modal');
+      modal.style.display = 'block';
+      isTourActive = true;
+      currentSelectedAptCode = aptCode || currentSelectedAptCode || '302';
+
+      // Synchronize Nav Tabs
+      const tabTour = document.getElementById('tab-tour');
+      const tab3d = document.getElementById('tab-3d');
+      const tab2d = document.getElementById('tab-2d');
+      if (tabTour) tabTour.classList.add('active');
+      if (tab3d) tab3d.classList.remove('active');
+      if (tab2d) tab2d.classList.remove('active');
+
+      if (!tourRenderer) {
+        initTourScene();
+      } else {
+        tourCamera.aspect = window.innerWidth / window.innerHeight;
+        tourCamera.updateProjectionMatrix();
+        tourRenderer.setSize(window.innerWidth, window.innerHeight);
+        tourRenderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+      }
+
+      const roomToOpen = startRoom || currentSelectedRoomKey || 'living';
+      switchTourRoom(roomToOpen);
+      if (window.lucide) lucide.createIcons();
+    }
+
+    function closeTourModal() {
+      document.getElementById('tour-modal').style.display = 'none';
+      isTourActive = false;
+      currentHotspots.forEach(hs => hs.el.style.display = 'none');
+
+      const tabTour = document.getElementById('tab-tour');
+      const tab3d = document.getElementById('tab-3d');
+      const tab2d = document.getElementById('tab-2d');
+      if (tabTour) tabTour.classList.remove('active');
+      const planModal = document.getElementById('plan-view-modal');
+      if (planModal && planModal.style.display === 'flex') {
+        if (tab2d) tab2d.classList.add('active');
+        if (tab3d) tab3d.classList.remove('active');
+      } else {
+        if (tab3d) tab3d.classList.add('active');
+        if (tab2d) tab2d.classList.remove('active');
+      }
+      if (window.lucide) lucide.createIcons();
+    }
+
+    function animateTour() {
+      requestAnimationFrame(animateTour);
+      if (!isTourActive) return;
+
+      if (isTourAutoRotating && !isTourDragging) {
+        tourLon += 0.08;
+      }
+
+      // Update Radar Vision Cone rotation in real-time with camera azimuth
+      const radarCone = document.getElementById('radar-cone');
+      if (radarCone) {
+        radarCone.setAttribute('transform', `rotate(${-tourLon})`);
+      }
+
+      const phi = THREE.MathUtils.degToRad(90 - tourLat);
+      const theta = THREE.MathUtils.degToRad(tourLon);
+
+      tourCamera.target.x = 500 * Math.sin(phi) * Math.cos(theta);
+      tourCamera.target.y = 500 * Math.cos(phi);
+      tourCamera.target.z = 500 * Math.sin(phi) * Math.sin(theta);
+      tourCamera.lookAt(tourCamera.target);
+
+      tourRenderer.render(tourScene, tourCamera);
+
+      // Track doorway hotspots in 3D
+      updateHotspotsPosition();
+    }
+
+    // ==========================================
+    // 6. INQUIRY & BOOKING MODAL
+    // ==========================================
+    function openInquiryModal(apt) {
+      const tooltip = document.getElementById('floor-hover-tooltip');
+      if (tooltip) tooltip.style.display = 'none';
+
+      document.getElementById('modal-chosen-apt').innerText = `Mənzil ${apt || currentSelectedAptCode}`;
+      document.getElementById('inquiry-modal').style.display = 'flex';
+      lucide.createIcons();
+    }
+
+    function closeInquiryModal() {
+      document.getElementById('inquiry-modal').style.display = 'none';
+    }
+
+    function submitInquiry(e) {
+      e.preventDefault();
+      const name = document.getElementById('inq-name').value;
+      const phone = document.getElementById('inq-phone').value;
+      const notes = document.getElementById('inq-notes').value;
+
+      const lead = {
+        name: name,
+        phone: phone,
+        apt: currentSelectedAptCode,
+        notes: notes,
+        date: new Date().toLocaleString('az-AZ')
+      };
+
+      saveInquiry(lead);
+      closeInquiryModal();
+      showToast('Sorğunuz qəbul edildi! Satış meneceri tezliklə əlaqə saxlayacaq.');
+      e.target.reset();
+    }
+
+    // ==========================================
+    // 7. ADMIN MANAGEMENT PANEL
+    // ==========================================
+    let currentAdminTab = 'apts';
+
+    function openAdminModal() {
+      const tooltip = document.getElementById('floor-hover-tooltip');
+      if (tooltip) tooltip.style.display = 'none';
+
+      document.getElementById('admin-modal').style.display = 'flex';
+      document.getElementById('leads-count').innerText = getInquiries().length;
+      renderAdminContent();
+      lucide.createIcons();
+    }
+
+    function closeAdminModal() {
+      document.getElementById('admin-modal').style.display = 'none';
+    }
+
+    function switchAdminTab(tab) {
+      currentAdminTab = tab;
+      document.getElementById('adm-tab-apts').classList.toggle('active', tab === 'apts');
+      document.getElementById('adm-tab-leads').classList.toggle('active', tab === 'leads');
+      document.getElementById('adm-tab-stats').classList.toggle('active', tab === 'stats');
+      renderAdminContent();
+    }
+
+    function renderAdminContent() {
+      const area = document.getElementById('admin-content-area');
+      if (currentAdminTab === 'apts') {
+        let html = `
+          <div style="display:flex; justify-content:space-between; margin-bottom:16px;">
+            <div style="font-size:14px; color:var(--text-muted);">
+              Cəmi <strong>${apartments.length}</strong> mənzil. Dəyişikliklər dərhal saytda yenilənir.
+            </div>
+            <button class="action-btn" onclick="resetToDefaults()" style="font-size:12px; padding:6px 12px;">
+              İlkin Vəziyyətə Qaytar
+            </button>
+          </div>
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>Mənzil</th>
+                <th>Mərtəbə</th>
+                <th>Otaq</th>
+                <th>Sahə (m²)</th>
+                <th>Qiymət (AZN)</th>
+                <th>Status</th>
+                <th>Əməliyyat</th>
+              </tr>
+            </thead>
+            <tbody>
+        `;
+
+        apartments.forEach((apt, idx) => {
+          html += `
+            <tr>
+              <td><strong>${apt.number}</strong></td>
+              <td>${apt.floor}-ci mərtəbə</td>
+              <td>${apt.rooms} otaqlı</td>
+              <td><input type="number" class="admin-input" style="width:75px;" value="${apt.area}" id="adm-area-${idx}"></td>
+              <td><input type="number" class="admin-input" style="width:110px;" value="${apt.price}" id="adm-price-${idx}"></td>
+              <td>
+                <select class="admin-select" id="adm-status-${idx}">
+                  <option value="available" ${apt.status === 'available' ? 'selected' : ''}>Satışda (Yaşıl)</option>
+                  <option value="reserved" ${apt.status === 'reserved' ? 'selected' : ''}>Rezervdə (Sarı)</option>
+                  <option value="sold" ${apt.status === 'sold' ? 'selected' : ''}>Satılıb (Qırmızı)</option>
+                </select>
+              </td>
+              <td>
+                <button class="action-btn" style="padding:4px 10px; font-size:11px;" onclick="saveSingleApt(${idx})">Yadda Saxla</button>
+              </td>
+            </tr>
+          `;
+        });
+
+        html += `</tbody></table>`;
+        area.innerHTML = html;
+      } else if (currentAdminTab === 'leads') {
+        const list = getInquiries();
+        let html = `
+          <div style="font-size:14px; color:var(--text-muted); margin-bottom:16px;">
+            Saytdan daxil olan müştəri müraciətləri və rezervasiya sorğuları:
+          </div>
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>Tarix</th>
+                <th>Ad və Soyad</th>
+                <th>Telefon</th>
+                <th>Mənzil</th>
+                <th>Qeyd</th>
+              </tr>
+            </thead>
+            <tbody>
+        `;
+        list.forEach(l => {
+          html += `
+            <tr>
+              <td>${l.date}</td>
+              <td><strong>${l.name}</strong></td>
+              <td><a href="tel:${l.phone}" style="color:var(--accent); text-decoration:none;">${l.phone}</a></td>
+              <td><span class="status-pill status-available">${l.apt}</span></td>
+              <td>${l.notes || '—'}</td>
+            </tr>
+          `;
+        });
+        html += `</tbody></table>`;
+        area.innerHTML = html;
+      } else if (currentAdminTab === 'stats') {
+        const total = apartments.length;
+        const available = apartments.filter(a => a.status === 'available').length;
+        const reserved = apartments.filter(a => a.status === 'reserved').length;
+        const sold = apartments.filter(a => a.status === 'sold').length;
+        const totalRevenue = apartments.filter(a => a.status === 'sold').reduce((acc, a) => acc + a.price, 0);
+
+        area.innerHTML = `
+          <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap:16px; margin-bottom:24px;">
+            <div style="background:rgba(255,255,255,0.04); padding:20px; border-radius:18px; border:1px solid rgba(255,255,255,0.08);">
+              <div style="font-size:12px; color:var(--text-muted);">CƏMİ MƏNZİL</div>
+              <div style="font-size:28px; font-weight:800; margin-top:6px;">${total}</div>
+            </div>
+            <div style="background:rgba(16,185,129,0.1); padding:20px; border-radius:18px; border:1px solid rgba(16,185,129,0.3);">
+              <div style="font-size:12px; color:#34d399;">SATIŞDA OLAN</div>
+              <div style="font-size:28px; font-weight:800; color:#34d399; margin-top:6px;">${available}</div>
+            </div>
+            <div style="background:rgba(245,158,11,0.1); padding:20px; border-radius:18px; border:1px solid rgba(245,158,11,0.3);">
+              <div style="font-size:12px; color:#fbbf24;">REZERV OLUNMUŞ</div>
+              <div style="font-size:28px; font-weight:800; color:#fbbf24; margin-top:6px;">${reserved}</div>
+            </div>
+            <div style="background:rgba(239,68,68,0.1); padding:20px; border-radius:18px; border:1px solid rgba(239,68,68,0.3);">
+              <div style="font-size:12px; color:#f87171;">SATILMIŞ MƏNZİLLƏR</div>
+              <div style="font-size:28px; font-weight:800; color:#f87171; margin-top:6px;">${sold}</div>
+            </div>
+          </div>
+          <div style="background:rgba(255,255,255,0.03); border:1px solid var(--panel-border); border-radius:20px; padding:24px;">
+            <h3 style="font-size:18px; font-weight:700; margin-bottom:8px;">Faktiki Satış Dövriyyəsi</h3>
+            <div style="font-size:36px; font-weight:800; color:var(--accent);">${formatMoney(totalRevenue)} AZN</div>
+            <p style="font-size:13px; color:var(--text-muted); margin-top:4px;">Hazırkı satılmış mənzillər üzrə toplanmış məbləğ.</p>
+          </div>
+        `;
+      }
+    }
+
+    function saveSingleApt(idx) {
+      apartments[idx].area = parseFloat(document.getElementById(`adm-area-${idx}`).value);
+      apartments[idx].price = parseFloat(document.getElementById(`adm-price-${idx}`).value);
+      apartments[idx].status = document.getElementById(`adm-status-${idx}`).value;
+
+      saveApartments(apartments);
+      showToast(`Mənzil ${apartments[idx].number} məlumatları yeniləndi!`);
+    }
+
+    function resetToDefaults() {
+      if (confirm('Bütün mənzil məlumatları ilkin vəziyyətinə qaytarılsın?')) {
+        saveApartments(DEFAULT_APARTMENTS);
+        renderAdminContent();
+        showToast('İlkin verilənlər bərpa olundu.');
+      }
+    }
+
+    function updateUIWithData() {
+      renderBadgeApartments(selectedFloor);
+      update2DPlanView(selectedFloor > 0 ? selectedFloor : 3);
+      selectApartmentByCode(currentSelectedAptCode);
+    }
+
+    // ==========================================
+    // 8. UTILITIES & CONTROLS
+    // ==========================================
+    function resetCamera() {
+      // Smooth close-up focus right in front of the building entrance & balconies
+      smoothMoveCamera(new THREE.Vector3(13.0, 7.8, 9.0), new THREE.Vector3(3.5, 5.5, -3.2));
+    }
+
+    function viewOverview() {
+      // Overview of the entire complex, fountain, lake and park
+      smoothMoveCamera(new THREE.Vector3(30.0, 22.0, 32.0), new THREE.Vector3(0, 4, 0));
+    }
+
+    function toggleAutoRotate() {
+      isAutoRotating = !isAutoRotating;
+      document.getElementById('btn-autorotate').classList.toggle('active', isAutoRotating);
+    }
+
+    function toggleLighting() {
+      isNightMode = !isNightMode;
+      document.getElementById('btn-daynight').classList.toggle('active', isNightMode);
+
+      if (isNightMode) {
+        scene.background = new THREE.Color(0x060913);
+        hemiLight.intensity = 0.25;
+        dirLight.intensity = 0.4;
+      } else {
+        if (skyTexture) scene.background = skyTexture;
+        hemiLight.intensity = 1.2;
+        dirLight.intensity = 2.3;
+      }
+    }
+
+    function formatMoney(num) {
+      return num.toLocaleString('az-AZ');
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById('toast-msg');
+      toast.innerText = msg;
+      toast.style.display = 'block';
+      setTimeout(() => { toast.style.display = 'none'; }, 3200);
+    }
+
+    // Run on startup
+    window.addEventListener('DOMContentLoaded', () => {
+      init3D();
+      selectFloor(3);
+      const leadsCountEl = document.getElementById('leads-count');
+      if (leadsCountEl) leadsCountEl.innerText = getInquiries().length;
+      if (window.lucide) lucide.createIcons();
+    });
+  </script>
+</body>
+</html>
