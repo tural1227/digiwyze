@@ -655,6 +655,166 @@
       stroke: #ffffff;
     }
 
+    /* Marneuli Interactive Unit Grid & Blueprint View */
+    .marneuli-wing-section {
+      background: rgba(15, 23, 42, 0.7);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 18px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+    .marneuli-wing-title {
+      font-size: 13px;
+      font-weight: 800;
+      color: #94a3b8;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .marneuli-units-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+      gap: 12px;
+    }
+    .marneuli-unit-card {
+      background: rgba(30, 41, 59, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 14px;
+      padding: 12px 14px;
+      cursor: pointer;
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      position: relative;
+    }
+    .marneuli-unit-card:hover {
+      background: rgba(30, 41, 59, 0.95);
+      border-color: #38bdf8;
+      transform: translateY(-2px);
+      box-shadow: 0 10px 24px rgba(0, 0, 0, 0.45);
+    }
+    .marneuli-unit-card.active {
+      background: rgba(14, 165, 233, 0.15);
+      border-color: #38bdf8;
+      box-shadow: 0 0 20px rgba(56, 189, 248, 0.35);
+    }
+    .unit-card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .unit-code-badge {
+      font-size: 15px;
+      font-weight: 800;
+      color: #fff;
+    }
+    .unit-title {
+      font-size: 12px;
+      color: #cbd5e1;
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .unit-specs {
+      display: flex;
+      justify-content: space-between;
+      background: rgba(0, 0, 0, 0.25);
+      padding: 6px 10px;
+      border-radius: 8px;
+      font-size: 11px;
+    }
+    .unit-specs .spec-item {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .unit-specs .lbl {
+      color: #64748b;
+      font-size: 9px;
+      text-transform: uppercase;
+    }
+    .unit-specs .val {
+      color: #f1f5f9;
+      font-weight: 700;
+    }
+    .unit-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 4px;
+    }
+    .unit-price {
+      font-size: 14px;
+      font-weight: 800;
+      color: #34d399;
+    }
+    .unit-tour-btn {
+      background: rgba(56, 189, 248, 0.15);
+      border: 1px solid rgba(56, 189, 248, 0.35);
+      color: #38bdf8;
+      border-radius: 8px;
+      padding: 4px 8px;
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      transition: all 0.2s ease;
+    }
+    .unit-tour-btn:hover {
+      background: #0284c7;
+      color: #fff;
+    }
+
+    /* Hotspot pins on blueprint */
+    .marneuli-hotspot-pin {
+      position: absolute;
+      transform: translate(-50%, -50%);
+      background: rgba(15, 23, 42, 0.9);
+      border: 2px solid #10b981;
+      color: #fff;
+      font-weight: 800;
+      font-size: 11px;
+      padding: 5px 12px;
+      border-radius: 20px;
+      cursor: pointer;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.6);
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
+      z-index: 5;
+    }
+    .marneuli-hotspot-pin:hover {
+      transform: translate(-50%, -50%) scale(1.15);
+      background: #0284c7;
+      border-color: #38bdf8;
+      box-shadow: 0 0 20px rgba(56, 189, 248, 0.6);
+      z-index: 20;
+    }
+    .marneuli-hotspot-pin.active {
+      background: #2563eb;
+      border-color: #facc15;
+      box-shadow: 0 0 25px rgba(250, 204, 21, 0.8);
+      z-index: 25;
+    }
+    .marneuli-hotspot-pin.status-sold {
+      border-color: #ef4444;
+      opacity: 0.85;
+    }
+    .marneuli-hotspot-pin.status-reserved {
+      border-color: #f59e0b;
+    }
+
     .apt-detail-sidebar {
       background: var(--panel-bg);
       border: 1px solid var(--panel-border);
@@ -1789,25 +1949,48 @@
           </g>
         </svg>
 
-        <!-- Real Architectural Plan Blueprint Viewer (Blok B - Marneuli Artstudio Project) -->
-        <div id="marneuli-plan-container" style="display:none; width:100%; height:100%; position:relative; flex-direction:column; align-items:center; justify-content:center; padding:16px; box-sizing:border-box;">
-          <!-- Top Architectural Cert Badge -->
-          <div style="position:absolute; top:16px; left:20px; z-index:10; display:flex; align-items:center; gap:10px; background:rgba(15,23,42,0.9); backdrop-filter:blur(12px); border:1px solid rgba(56,189,248,0.35); border-radius:12px; padding:8px 14px; box-shadow:0 8px 24px rgba(0,0,0,0.5);">
-            <span style="display:inline-block; width:10px; height:10px; border-radius:50%; background:#10b981; box-shadow:0 0 10px #10b981;"></span>
-            <span style="font-size:12px; font-weight:700; color:#e2e8f0; font-family:monospace; letter-spacing:0.05em;" id="marneuli-plan-badge">ARTSTUDIO PROJECT • PHASE 1 RƏSMİ MEMARLIQ PLANI</span>
+        <!-- Real Architectural Plan & Interactive Apartment Explorer (Blok B - Marneuli Artstudio Project) -->
+        <div id="marneuli-plan-container" style="display:none; width:100%; height:100%; position:relative; flex-direction:column; padding:12px; box-sizing:border-box; overflow:hidden;">
+          <!-- Top Control Header Bar -->
+          <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; flex-shrink:0; flex-wrap:wrap; gap:8px;">
+            <div style="display:flex; align-items:center; gap:8px; background:rgba(15,23,42,0.85); backdrop-filter:blur(10px); border:1px solid rgba(56,189,248,0.3); border-radius:10px; padding:6px 12px;">
+              <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:#10b981; box-shadow:0 0 8px #10b981;"></span>
+              <span style="font-size:12px; font-weight:700; color:#e2e8f0; font-family:monospace;" id="marneuli-plan-badge">ARTSTUDIO PROJECT • PHASE 1 MEMARLIQ PLANI</span>
+            </div>
+
+            <!-- View Switcher Tabs: Grid Mode vs Blueprint Hotspots -->
+            <div style="display:flex; gap:6px; background:rgba(15,23,42,0.85); backdrop-filter:blur(10px); border:1px solid rgba(255,255,255,0.1); border-radius:10px; padding:3px;">
+              <button id="marneuli-tab-grid" class="action-btn active" style="padding:5px 12px; font-size:12px; font-weight:700; border-radius:7px;" onclick="switchMarneuliPlanTab('grid')">
+                <i data-lucide="layout-grid" style="width:14px; height:14px; margin-right:4px;"></i> İnteraktiv Mənzil Şəbəkəsi
+              </button>
+              <button id="marneuli-tab-blueprint" class="action-btn" style="padding:5px 12px; font-size:12px; font-weight:700; border-radius:7px;" onclick="switchMarneuliPlanTab('blueprint')">
+                <i data-lucide="map-pin" style="width:14px; height:14px; margin-right:4px;"></i> HD Çertyoj & Pinlər
+              </button>
+            </div>
           </div>
 
-          <!-- Image Viewer Container with smooth zoom -->
-          <div id="marneuli-plan-viewport" style="width:100%; height:100%; display:flex; align-items:center; justify-content:center; overflow:hidden; border-radius:16px; position:relative; background:#080d1a;">
-            <img id="marneuli-plan-img" src="marneuli_plan_typical.png" alt="Marneuli Architectural Floor Plan" style="max-width:96%; max-height:94%; object-fit:contain; border-radius:10px; filter:drop-shadow(0 20px 45px rgba(0,0,0,0.85)); transition:transform 0.25s ease-out; cursor:zoom-in;" onclick="togglePlanZoom(this)" title="Böyütmək üçün klikləyin" />
+          <!-- View 1: Interactive Unit Matrix (Grouped by Wings, click any card to select apartment) -->
+          <div id="marneuli-grid-view" style="flex:1; width:100%; overflow-y:auto; overflow-x:hidden; padding-right:6px; box-sizing:border-box;">
+            <!-- Dynamically populated by renderMarneuliApartmentGrid() -->
           </div>
 
-          <!-- Zoom & Scale Controls floating bar -->
-          <div style="position:absolute; bottom:16px; right:20px; z-index:10; display:flex; align-items:center; gap:8px; background:rgba(15,23,42,0.9); backdrop-filter:blur(10px); border:1px solid rgba(255,255,255,0.12); border-radius:12px; padding:6px 12px; font-size:11px; color:#cbd5e1; box-shadow:0 8px 20px rgba(0,0,0,0.4);">
-            <button class="action-btn" style="padding:3px 8px; font-size:11px; background:rgba(255,255,255,0.08);" onclick="zoomPlanImg(1.25)" title="Yaxınlaşdır">🔍 +</button>
-            <button class="action-btn" style="padding:3px 8px; font-size:11px; background:rgba(255,255,255,0.08);" onclick="zoomPlanImg(0.8)" title="Uzaqlaşdır">🔍 -</button>
-            <button class="action-btn" style="padding:3px 8px; font-size:11px; background:rgba(255,255,255,0.08);" onclick="resetPlanZoom()" title="Sıfırla">⟲ 100%</button>
-            <span style="margin-left:4px; opacity:0.8; font-family:monospace;">Miqyas 1:100</span>
+          <!-- View 2: HD Architectural Blueprint with Overlaid Hotspot Pins -->
+          <div id="marneuli-blueprint-view" style="display:none; flex:1; width:100%; position:relative; overflow:hidden; border-radius:14px; background:#080d1a;">
+            <div id="marneuli-plan-viewport" style="width:100%; height:100%; display:flex; align-items:center; justify-content:center; overflow:hidden; position:relative;">
+              <div id="marneuli-blueprint-wrapper" style="position:relative; display:inline-block; max-width:96%; max-height:96%; transition:transform 0.25s ease-out;">
+                <img id="marneuli-plan-img" src="marneuli_plan_typical.png" alt="Marneuli Architectural Floor Plan" style="width:100%; height:auto; max-height:85vh; object-fit:contain; border-radius:8px; filter:drop-shadow(0 15px 35px rgba(0,0,0,0.85)); cursor:zoom-in;" onclick="togglePlanZoom(this)" title="Böyütmək üçün klikləyin" />
+                <!-- Overlaid Interactive Apartment Pins -->
+                <div id="marneuli-hotspot-overlay" style="position:absolute; inset:0; pointer-events:none;"></div>
+              </div>
+            </div>
+
+            <!-- Floating Blueprint Zoom Controls -->
+            <div style="position:absolute; bottom:12px; right:16px; z-index:10; display:flex; align-items:center; gap:6px; background:rgba(15,23,42,0.9); backdrop-filter:blur(10px); border:1px solid rgba(255,255,255,0.12); border-radius:10px; padding:5px 10px; font-size:11px; color:#cbd5e1; box-shadow:0 8px 20px rgba(0,0,0,0.4);">
+              <button class="action-btn" style="padding:3px 8px; font-size:11px;" onclick="zoomPlanImg(1.25)" title="Yaxınlaşdır">🔍 +</button>
+              <button class="action-btn" style="padding:3px 8px; font-size:11px;" onclick="zoomPlanImg(0.8)" title="Uzaqlaşdır">🔍 -</button>
+              <button class="action-btn" style="padding:3px 8px; font-size:11px;" onclick="resetPlanZoom()" title="Sıfırla">⟲ 100%</button>
+              <span style="margin-left:4px; opacity:0.8; font-family:monospace;">Miqyas 1:100</span>
+            </div>
           </div>
         </div>
       </div>
@@ -2073,7 +2256,7 @@
         name: 'Marneuli Kompleksi',
         blokName: 'Blok B',
         desc: 'MARNEULI CITY RESIDENCE • 12 MƏRTƏBƏ • 183 REAL MEMARLIQ MƏNZİLİ',
-        modelFile: 'marneuli_building.glb',
+        modelFile: 'marneuli_building.glb?v=20261012_v3',
         floorCount: 12,
         scaleDim: 45,
         camPos: new THREE.Vector3(0.0, 16.0, 38.0),
@@ -3126,10 +3309,17 @@
         const yEnd = currentBuildingBounds.h * (bldg.yEndFraction !== undefined ? bldg.yEndFraction : 0.94);
         const fH = (yEnd - yStart) / (bldg.floorCount || 14);
         const floorY = yStart + (floorNum - 0.5) * fH;
-        smoothMoveCamera(
-          new THREE.Vector3(currentBuildingBounds.w * 0.72, floorY + 2.5, currentBuildingBounds.d * 1.05),
-          new THREE.Vector3(currentBuildingBounds.cx, floorY, currentBuildingBounds.cz)
-        );
+        if (currentBuildingId === 'blok_b') {
+          smoothMoveCamera(
+            new THREE.Vector3(0.0, floorY + 4.0, currentBuildingBounds.d * 1.35),
+            new THREE.Vector3(0.0, floorY, 0.0)
+          );
+        } else {
+          smoothMoveCamera(
+            new THREE.Vector3(currentBuildingBounds.w * 0.72, floorY + 2.5, currentBuildingBounds.d * 1.05),
+            new THREE.Vector3(currentBuildingBounds.cx, floorY, currentBuildingBounds.cz)
+          );
+        }
         const floorBadge = document.getElementById('floor-badge');
         if (floorBadge) floorBadge.style.display = 'block';
         const badgeTitle = document.getElementById('badge-floor-title');
@@ -3137,10 +3327,17 @@
         renderBadgeApartments(floorNum);
       } else {
         clearFloorYellow();
-        smoothMoveCamera(
-          new THREE.Vector3(currentBuildingBounds.w * 0.95, currentBuildingBounds.h * 0.7, currentBuildingBounds.d * 1.3),
-          new THREE.Vector3(currentBuildingBounds.cx, currentBuildingBounds.h * 0.4, currentBuildingBounds.cz)
-        );
+        if (currentBuildingId === 'blok_b') {
+          smoothMoveCamera(
+            new THREE.Vector3(0.0, 16.0, 38.0),
+            new THREE.Vector3(0.0, 6.0, 0.0)
+          );
+        } else {
+          smoothMoveCamera(
+            new THREE.Vector3(currentBuildingBounds.w * 0.95, currentBuildingBounds.h * 0.7, currentBuildingBounds.d * 1.3),
+            new THREE.Vector3(currentBuildingBounds.cx, currentBuildingBounds.h * 0.4, currentBuildingBounds.cz)
+          );
+        }
         const floorBadge = document.getElementById('floor-badge');
         if (floorBadge) floorBadge.style.display = 'none';
       }
@@ -3252,21 +3449,44 @@
       if (window.lucide) lucide.createIcons();
     }
 
-    // Plan blueprint zoom controls
+    // ==========================================
+    // MARNEULI INTERACTIVE FLOOR PLAN & BLUEPRINT
+    // ==========================================
+    let currentMarneuliPlanTab = 'grid';
+    function switchMarneuliPlanTab(tab) {
+      currentMarneuliPlanTab = tab;
+      const btnGrid = document.getElementById('marneuli-tab-grid');
+      const btnBlueprint = document.getElementById('marneuli-tab-blueprint');
+      const gridView = document.getElementById('marneuli-grid-view');
+      const blueprintView = document.getElementById('marneuli-blueprint-view');
+
+      if (tab === 'grid') {
+        if (btnGrid) btnGrid.classList.add('active');
+        if (btnBlueprint) btnBlueprint.classList.remove('active');
+        if (gridView) gridView.style.display = 'block';
+        if (blueprintView) blueprintView.style.display = 'none';
+      } else {
+        if (btnBlueprint) btnBlueprint.classList.add('active');
+        if (btnGrid) btnGrid.classList.remove('active');
+        if (gridView) gridView.style.display = 'none';
+        if (blueprintView) blueprintView.style.display = 'flex';
+      }
+      if (window.lucide) lucide.createIcons();
+    }
+
+    // Plan blueprint zoom controls (zooms wrapper with image & hotspot pins together)
     let planZoomLevel = 1.0;
     function zoomPlanImg(factor) {
-      const img = document.getElementById('marneuli-plan-img');
-      if (!img) return;
+      const wrapper = document.getElementById('marneuli-blueprint-wrapper') || document.getElementById('marneuli-plan-img');
+      if (!wrapper) return;
       planZoomLevel = Math.max(0.7, Math.min(3.0, planZoomLevel * factor));
-      img.style.transform = `scale(${planZoomLevel})`;
-      img.style.cursor = planZoomLevel > 1.05 ? 'zoom-out' : 'zoom-in';
+      wrapper.style.transform = `scale(${planZoomLevel})`;
     }
     function resetPlanZoom() {
-      const img = document.getElementById('marneuli-plan-img');
-      if (!img) return;
+      const wrapper = document.getElementById('marneuli-blueprint-wrapper') || document.getElementById('marneuli-plan-img');
+      if (!wrapper) return;
       planZoomLevel = 1.0;
-      img.style.transform = 'scale(1)';
-      img.style.cursor = 'zoom-in';
+      wrapper.style.transform = 'scale(1)';
     }
     function togglePlanZoom(img) {
       if (planZoomLevel > 1.1) {
@@ -3274,6 +3494,193 @@
       } else {
         zoomPlanImg(1.6);
       }
+    }
+
+    function renderMarneuliApartmentGrid(floorNum) {
+      const container = document.getElementById('marneuli-grid-view');
+      if (!container) return;
+      container.innerHTML = '';
+
+      const fApts = apartments.filter(a => a.bldg === 'blok_b' && a.floor === floorNum);
+      if (!fApts.length) return;
+
+      // Define Wing groupings
+      let wings = [];
+      if (floorNum >= 2 && floorNum <= 10) {
+        wings = [
+          { name: '🏛️ Qərb Qanadı (Mənzil 01 – 05)', apts: fApts.slice(0, 5) },
+          { name: '🌳 Mərkəzi Qalereya və Park Baxışı (Mənzil 06 – 11)', apts: fApts.slice(5, 11) },
+          { name: '🌅 Şərq Qanadı və Panoramik Künclər (Mənzil 12 – 17)', apts: fApts.slice(11, 17) }
+        ];
+      } else if (floorNum === 11) {
+        wings = [
+          { name: '🌆 Qərb Terraslı Bölmə (Mənzil 01 – 08)', apts: fApts.slice(0, 8) },
+          { name: '🌟 Şərq Terraslı İcraçı Bölmə (Mənzil 09 – 16)', apts: fApts.slice(8, 16) }
+        ];
+      } else if (floorNum === 12) {
+        wings = [
+          { name: '👑 Kral Penthouse və Geniş Açıq Terraslar (Mənzil 01 – 11)', apts: fApts }
+        ];
+      } else {
+        wings = [
+          { name: '🌿 Xüsusi Həyətli Rezidensiyalar və Bağça Mənzilləri (Mənzil 01 – 04)', apts: fApts }
+        ];
+      }
+
+      // Header info banner for the floor
+      const banner = document.createElement('div');
+      banner.style.cssText = 'background:rgba(56,189,248,0.08); border:1px solid rgba(56,189,248,0.25); border-radius:14px; padding:12px 16px; margin-bottom:14px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px;';
+      banner.innerHTML = `
+        <div>
+          <div style="font-size:14px; font-weight:800; color:#f1f5f9;">🏢 Blok B • Mərtəbə ${floorNum} — ${fApts.length} Real Memarlıq Mənzili</div>
+          <div style="font-size:12px; color:#94a3b8; margin-top:2px;">Mənzili seçmək üçün istənilən kartın üzərinə klikləyin • Məlumatlar sağ paneldə açılacaq</div>
+        </div>
+        <div style="display:flex; gap:8px; font-size:11px;">
+          <span style="background:rgba(16,185,129,0.15); color:#10b981; border:1px solid rgba(16,185,129,0.3); padding:4px 9px; border-radius:6px; font-weight:700;">🟢 ${fApts.filter(a=>a.status==='available').length} Satışda</span>
+          <span style="background:rgba(245,158,11,0.15); color:#f59e0b; border:1px solid rgba(245,158,11,0.3); padding:4px 9px; border-radius:6px; font-weight:700;">🟡 ${fApts.filter(a=>a.status==='reserved').length} Rezerv</span>
+          <span style="background:rgba(239,68,68,0.15); color:#ef4444; border:1px solid rgba(239,68,68,0.3); padding:4px 9px; border-radius:6px; font-weight:700;">🔴 ${fApts.filter(a=>a.status==='sold').length} Satılıb</span>
+        </div>
+      `;
+      container.appendChild(banner);
+
+      wings.forEach(wing => {
+        const section = document.createElement('div');
+        section.className = 'marneuli-wing-section';
+
+        const title = document.createElement('div');
+        title.className = 'marneuli-wing-title';
+        title.innerText = wing.name;
+        section.appendChild(title);
+
+        const row = document.createElement('div');
+        row.className = 'marneuli-units-row';
+
+        wing.apts.forEach(apt => {
+          const card = document.createElement('div');
+          const isActive = currentSelectedAptCode === apt.number;
+          card.className = `marneuli-unit-card ${isActive ? 'active' : ''}`;
+          card.id = `marneuli-card-${apt.number}`;
+          card.setAttribute('data-apt-code', apt.number);
+
+          const statusPillClass = `status-${apt.status}`;
+          const statusText = apt.status === 'available' ? 'Satışda' : (apt.status === 'reserved' ? 'Rezervdə' : 'Satılıb');
+          const balconyStr = apt.balcony ? `${apt.balcony} m²` : '—';
+          const m2Price = Math.round(apt.price / apt.area);
+
+          card.innerHTML = `
+            <div class="unit-card-header">
+              <div class="unit-code-badge">Mənzil ${apt.number}</div>
+              <span class="status-pill ${statusPillClass}">${statusText}</span>
+            </div>
+            <div class="unit-title" title="${apt.desc || ''}">${apt.desc || (apt.rooms + ' Otaqlı Mənzil')}</div>
+            <div class="unit-specs">
+              <div class="spec-item">
+                <span class="lbl">Otaq</span>
+                <span class="val">${apt.rooms} Otaq</span>
+              </div>
+              <div class="spec-item">
+                <span class="lbl">Xalis Sahə</span>
+                <span class="val">${apt.area} m²</span>
+              </div>
+              <div class="spec-item">
+                <span class="lbl">Eyvan</span>
+                <span class="val">${balconyStr}</span>
+              </div>
+            </div>
+            <div class="unit-footer">
+              <div>
+                <div class="unit-price">${formatMoney(apt.price)} AZN</div>
+                <div style="font-size:10px; color:#94a3b8; font-family:monospace;">1m² = ${formatMoney(m2Price)} AZN</div>
+              </div>
+              <button class="unit-tour-btn" onclick="event.stopPropagation(); openTourModal('${apt.number}');" title="360° Virtual Tur">
+                <i data-lucide="eye" style="width:13px; height:13px;"></i> 360°
+              </button>
+            </div>
+          `;
+
+          card.onclick = () => {
+            selectApartmentByCode(apt.number);
+          };
+
+          row.appendChild(card);
+        });
+
+        section.appendChild(row);
+        container.appendChild(section);
+      });
+
+      if (window.lucide) lucide.createIcons();
+    }
+
+    function renderMarneuliHotspots(floorNum) {
+      const overlay = document.getElementById('marneuli-hotspot-overlay');
+      if (!overlay) return;
+      overlay.innerHTML = '';
+
+      const fApts = apartments.filter(a => a.bldg === 'blok_b' && a.floor === floorNum);
+      if (!fApts.length) return;
+
+      // Coordinate maps for hotspot badges
+      let coords = [];
+      if (floorNum >= 2 && floorNum <= 10) {
+        coords = [
+          { x: 8,  y: 32 }, // 01
+          { x: 14, y: 32 }, // 02
+          { x: 20, y: 32 }, // 03
+          { x: 26, y: 32 }, // 04
+          { x: 32, y: 32 }, // 05
+          { x: 38, y: 32 }, // 06
+          { x: 44, y: 32 }, // 07
+          { x: 50, y: 32 }, // 08
+          { x: 56, y: 32 }, // 09
+          { x: 62, y: 32 }, // 10
+          { x: 68, y: 32 }, // 11
+          { x: 74, y: 32 }, // 12
+          { x: 80, y: 32 }, // 13
+          { x: 86, y: 32 }, // 14
+          { x: 92, y: 32 }, // 15
+          { x: 46, y: 68 }, // 16
+          { x: 64, y: 68 }, // 17
+        ];
+      } else if (floorNum === 11) {
+        coords = [
+          { x: 8,  y: 32 }, { x: 14, y: 32 }, { x: 20, y: 32 }, { x: 26, y: 32 },
+          { x: 32, y: 32 }, { x: 38, y: 32 }, { x: 44, y: 32 }, { x: 50, y: 32 },
+          { x: 56, y: 32 }, { x: 62, y: 32 }, { x: 68, y: 32 }, { x: 74, y: 32 },
+          { x: 80, y: 32 }, { x: 86, y: 32 }, { x: 92, y: 32 }, { x: 52, y: 68 }
+        ];
+      } else if (floorNum === 12) {
+        coords = [
+          { x: 10, y: 34 }, { x: 18, y: 34 }, { x: 26, y: 34 }, { x: 34, y: 34 },
+          { x: 42, y: 34 }, { x: 50, y: 34 }, { x: 58, y: 34 }, { x: 66, y: 34 },
+          { x: 74, y: 34 }, { x: 82, y: 34 }, { x: 90, y: 34 }
+        ];
+      } else {
+        coords = [
+          { x: 22, y: 45 }, { x: 42, y: 45 }, { x: 62, y: 45 }, { x: 82, y: 45 }
+        ];
+      }
+
+      fApts.forEach((apt, idx) => {
+        const pos = coords[idx] || { x: 10 + idx * 5, y: 40 };
+        const pin = document.createElement('div');
+        const isActive = currentSelectedAptCode === apt.number;
+        pin.className = `marneuli-hotspot-pin status-${apt.status} ${isActive ? 'active' : ''}`;
+        pin.id = `marneuli-pin-${apt.number}`;
+        pin.style.left = `${pos.x}%`;
+        pin.style.top = `${pos.y}%`;
+        pin.style.pointerEvents = 'auto';
+
+        const statusDot = apt.status === 'available' ? '🟢' : (apt.status === 'reserved' ? '🟡' : '🔴');
+        pin.innerHTML = `<span>${statusDot} № ${apt.number}</span> <span style="font-size:10px; opacity:0.8;">(${apt.rooms}O • ${apt.area}m²)</span>`;
+
+        pin.onclick = (e) => {
+          e.stopPropagation();
+          selectApartmentByCode(apt.number);
+        };
+
+        overlay.appendChild(pin);
+      });
     }
 
     function update2DPlanView(floorNum) {
@@ -3310,6 +3717,10 @@
           if (marneuliImg) marneuliImg.src = 'marneuli_plan_typical.png';
           if (marneuliBadge) marneuliBadge.innerText = `ARTSTUDIO PROJECT • MƏRTƏBƏ ${f} (TİPİK 17 MƏNZİLLİ REZİDENSİYA PLANI)`;
         }
+
+        // Render both the interactive card matrix and blueprint hotspots
+        renderMarneuliApartmentGrid(f);
+        renderMarneuliHotspots(f);
       } else {
         if (svgElem) svgElem.style.display = 'block';
         if (marneuliContainer) marneuliContainer.style.display = 'none';
@@ -3439,6 +3850,23 @@
         roomBadge.style.display = 'flex';
         roomText.innerHTML = `<strong>Təyinat:</strong> ${apt.desc}`;
       }
+
+      // Update active state in Marneuli interactive card grid & pins
+      document.querySelectorAll('.marneuli-unit-card').forEach(c => {
+        if (c.getAttribute('data-apt-code') === apt.number) {
+          c.classList.add('active');
+          c.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        } else {
+          c.classList.remove('active');
+        }
+      });
+      document.querySelectorAll('.marneuli-hotspot-pin').forEach(p => {
+        if (p.id === `marneuli-pin-${apt.number}`) {
+          p.classList.add('active');
+        } else {
+          p.classList.remove('active');
+        }
+      });
     }
 
     // ==========================================
