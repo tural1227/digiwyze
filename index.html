@@ -1311,7 +1311,7 @@
       <button class="bldg-switch-btn bldg-btn-marneuli" id="bldg-btn-b" onclick="switchBuilding('blok_b')" title="Blok B (Marneuli Kompleksi)">
         <span class="bldg-badge-pill bldg-b">BLOK B</span>
         <span class="bldg-title-text">Marneuli Kompleksi</span>
-        <span class="bldg-floors-text">18 Mərtəbə</span>
+        <span class="bldg-floors-text">12 Mərtəbə</span>
       </button>
     </div>
 
@@ -1788,6 +1788,28 @@
             </g>
           </g>
         </svg>
+
+        <!-- Real Architectural Plan Blueprint Viewer (Blok B - Marneuli Artstudio Project) -->
+        <div id="marneuli-plan-container" style="display:none; width:100%; height:100%; position:relative; flex-direction:column; align-items:center; justify-content:center; padding:16px; box-sizing:border-box;">
+          <!-- Top Architectural Cert Badge -->
+          <div style="position:absolute; top:16px; left:20px; z-index:10; display:flex; align-items:center; gap:10px; background:rgba(15,23,42,0.9); backdrop-filter:blur(12px); border:1px solid rgba(56,189,248,0.35); border-radius:12px; padding:8px 14px; box-shadow:0 8px 24px rgba(0,0,0,0.5);">
+            <span style="display:inline-block; width:10px; height:10px; border-radius:50%; background:#10b981; box-shadow:0 0 10px #10b981;"></span>
+            <span style="font-size:12px; font-weight:700; color:#e2e8f0; font-family:monospace; letter-spacing:0.05em;" id="marneuli-plan-badge">ARTSTUDIO PROJECT • PHASE 1 RƏSMİ MEMARLIQ PLANI</span>
+          </div>
+
+          <!-- Image Viewer Container with smooth zoom -->
+          <div id="marneuli-plan-viewport" style="width:100%; height:100%; display:flex; align-items:center; justify-content:center; overflow:hidden; border-radius:16px; position:relative; background:#080d1a;">
+            <img id="marneuli-plan-img" src="marneuli_plan_typical.png" alt="Marneuli Architectural Floor Plan" style="max-width:96%; max-height:94%; object-fit:contain; border-radius:10px; filter:drop-shadow(0 20px 45px rgba(0,0,0,0.85)); transition:transform 0.25s ease-out; cursor:zoom-in;" onclick="togglePlanZoom(this)" title="Böyütmək üçün klikləyin" />
+          </div>
+
+          <!-- Zoom & Scale Controls floating bar -->
+          <div style="position:absolute; bottom:16px; right:20px; z-index:10; display:flex; align-items:center; gap:8px; background:rgba(15,23,42,0.9); backdrop-filter:blur(10px); border:1px solid rgba(255,255,255,0.12); border-radius:12px; padding:6px 12px; font-size:11px; color:#cbd5e1; box-shadow:0 8px 20px rgba(0,0,0,0.4);">
+            <button class="action-btn" style="padding:3px 8px; font-size:11px; background:rgba(255,255,255,0.08);" onclick="zoomPlanImg(1.25)" title="Yaxınlaşdır">🔍 +</button>
+            <button class="action-btn" style="padding:3px 8px; font-size:11px; background:rgba(255,255,255,0.08);" onclick="zoomPlanImg(0.8)" title="Uzaqlaşdır">🔍 -</button>
+            <button class="action-btn" style="padding:3px 8px; font-size:11px; background:rgba(255,255,255,0.08);" onclick="resetPlanZoom()" title="Sıfırla">⟲ 100%</button>
+            <span style="margin-left:4px; opacity:0.8; font-family:monospace;">Miqyas 1:100</span>
+          </div>
+        </div>
       </div>
 
       <!-- Right Side: Selected Apartment Full Details -->
@@ -2050,14 +2072,20 @@
         id: 'blok_b',
         name: 'Marneuli Kompleksi',
         blokName: 'Blok B',
-        desc: 'MARNEULI RESIDENTIAL COMPLEX • 18 MƏRTƏBƏ • 72 PREMİUM MƏNZİL',
+        desc: 'MARNEULI CITY RESIDENCE • 12 MƏRTƏBƏ • 183 REAL MEMARLIQ MƏNZİLİ',
         modelFile: 'marneuli_building.glb',
-        floorCount: 18,
+        floorCount: 12,
         scaleDim: 45,
         camPos: new THREE.Vector3(0.0, 16.0, 38.0),
         targetPos: new THREE.Vector3(0, 6.0, 0),
         yStartFraction: 0.02,
-        yEndFraction: 0.98
+        yEndFraction: 0.98,
+        floors: {
+          min: 1,
+          max: 12,
+          getTag: (f) => f === 12 ? 'PNT' : (f === 11 ? 'VIP' : (f === 1 ? 'LOB' : 'MƏR')),
+          getDesc: (f) => f === 12 ? 'Penthouse & Geniş Terraslar' : (f === 11 ? 'İcraçı Mərtəbə & Terraslar' : (f === 1 ? 'Zəmin Mərtəbə • Kommersiya & Bağça' : 'Tipik Yaşayış Mərtəbəsi'))
+        }
       }
     };
     let currentBuildingId = 'blok_a';
@@ -2088,48 +2116,155 @@
         });
       }
 
-      // Blok B: Marneuli Residental Complex (18 floors, 72 apartments)
-      for (let f = 1; f <= 18; f++) {
-        const floorTypesB = [
-          { num: `${f}01`, rooms: 2, area: 74, basePrice: 118000, type: '2 Otaqlı • Qərb Panoraması' },
-          { num: `${f}02`, rooms: 3, area: 124, basePrice: 195000, type: '3 Otaqlı • Park & Bağça Mənzərəsi' },
-          { num: `${f}03`, rooms: 2, area: 62, basePrice: 98000, type: '2 Otaqlı • Kompakt Lüks' },
-          { num: `${f}04`, rooms: 4, area: 160, basePrice: 270000, type: '4 Otaqlı • Panoramik Penthouse Suite' },
-        ];
-        floorTypesB.forEach((t, idx) => {
-          const status = (f === 3 && idx === 0) ? 'available' : ((f * 2 + idx) % 4 === 0 ? 'sold' : ((f + idx) % 3 === 0 ? 'reserved' : 'available'));
+      // Blok B: Real Marneuli City Residence Phase 1 Architectural Plan (Official Artstudio Blueprint)
+      // Ground Floor (Floor 1): 4 Garden Residential Apartments + Commercial Spaces
+      const groundApts = [
+        { code: '01', rooms: 2, area: 75.3, balcony: 21.0, gross: 96.3, type: '2 Otaqlı • 21m² Xüsusi Həyətli Bağ Mənzili' },
+        { code: '02', rooms: 3, area: 108.9, balcony: 28.8, gross: 137.7, type: '3 Otaqlı • 29m² Geniş Həyətli Rezidensiya' },
+        { code: '03', rooms: 2, area: 64.0, balcony: 17.4, gross: 78.6, type: '2 Otaqlı • 17m² Xüsusi Həyətli Mənzil' },
+        { code: '04', rooms: 1, area: 59.4, balcony: 14.6, gross: 76.8, type: '1 Otaqlı • 15m² Həyətli Kompakt Mənzil' },
+      ];
+      groundApts.forEach((t, idx) => {
+        apts.push({
+          id: `B-1${t.code}`,
+          bldg: 'blok_b',
+          floor: 1,
+          number: `1${t.code}`,
+          rooms: t.rooms,
+          area: t.area,
+          balcony: t.balcony,
+          gross: t.gross,
+          price: Math.round(t.area * 1650),
+          status: idx === 0 ? 'available' : (idx === 1 ? 'reserved' : 'available'),
+          desc: `Blok B (Marneuli) • ${t.type}`
+        });
+      });
+
+      // Typical Floors 2 through 10 (17 real apartments per floor directly from Artstudio Blueprint Page 31)
+      const typicalAptSchedule = [
+        { code: '01', rooms: 1, area: 54.1, balcony: 3.7, gross: 57.8, type: '1 Otaqlı • Kompakt Mənzil' },
+        { code: '02', rooms: 2, area: 70.1, balcony: 3.7, gross: 73.8, type: '2 Otaqlı • Panoramik Eyvanlı' },
+        { code: '03', rooms: 2, area: 84.8, balcony: 3.7, gross: 88.5, type: '2 Otaqlı • Geniş Ailəvi Rezidensiya' },
+        { code: '04', rooms: 2, area: 80.0, balcony: 3.7, gross: 83.7, type: '2 Otaqlı • Cənub Panoraması' },
+        { code: '05', rooms: 2, area: 80.0, balcony: 3.7, gross: 83.7, type: '2 Otaqlı • Həyət Mənzərəsi' },
+        { code: '06', rooms: 1, area: 57.7, balcony: 3.7, gross: 61.4, type: '1 Otaqlı • Studio Lüks' },
+        { code: '07', rooms: 1, area: 57.7, balcony: 3.7, gross: 61.4, type: '1 Otaqlı • Park Baxışı' },
+        { code: '08', rooms: 2, area: 80.2, balcony: 3.7, gross: 83.9, type: '2 Otaqlı • Qərb Qanadı' },
+        { code: '09', rooms: 1, area: 54.9, balcony: 3.7, gross: 58.6, type: '1 Otaqlı • Şəhər Panoraması' },
+        { code: '10', rooms: 1, area: 49.1, balcony: 3.7, gross: 52.8, type: '1 Otaqlı • Studio Suite' },
+        { code: '11', rooms: 2, area: 69.5, balcony: 3.7, gross: 73.2, type: '2 Otaqlı • Sakit Həyət Baxışı' },
+        { code: '12', rooms: 2, area: 86.2, balcony: 3.7, gross: 89.9, type: '2 Otaqlı • Master Yataq Otaqlı' },
+        { code: '13', rooms: 2, area: 75.0, balcony: 5.3, gross: 80.3, type: '2 Otaqlı • Geniş Eyvanlı' },
+        { code: '14', rooms: 2, area: 73.7, balcony: 5.5, gross: 79.2, type: '2 Otaqlı • Şərq İşıqlı' },
+        { code: '15', rooms: 2, area: 80.4, balcony: 3.7, gross: 84.1, type: '2 Otaqlı • Panoramik Lüks' },
+        { code: '16', rooms: 1, area: 52.5, balcony: 3.7, gross: 56.2, type: '1 Otaqlı • Kompakt Studio' },
+        { code: '17', rooms: 3, area: 82.4, balcony: 3.7, gross: 86.1, type: '3 Otaqlı • Premium Künc Mənzil' },
+      ];
+
+      for (let f = 2; f <= 10; f++) {
+        typicalAptSchedule.forEach((t, idx) => {
+          const num = `${f}${t.code}`;
+          const status = (f === 3 && idx === 1) ? 'available' : ((f * 3 + idx) % 5 === 0 ? 'sold' : ((f + idx) % 4 === 0 ? 'reserved' : 'available'));
           apts.push({
-            id: `B-${t.num}`,
+            id: `B-${num}`,
             bldg: 'blok_b',
             floor: f,
-            number: t.num,
+            number: num,
             rooms: t.rooms,
             area: t.area,
-            price: t.basePrice + (f - 1) * 3200,
+            balcony: t.balcony,
+            gross: t.gross,
+            price: Math.round(t.area * (1580 + (f - 1) * 25)),
             status: status,
             desc: `Blok B (Marneuli) • ${t.type}`
           });
         });
       }
+
+      // Floor 11: Executive Floor Plan (16 apartments + private step-back terraces from Artstudio Page 15)
+      const floor11Schedule = [
+        { code: '01', rooms: 2, area: 74.8, balcony: 12.3, gross: 87.1, type: '2 Otaqlı • 12.3m² Özəl Terraslı' },
+        { code: '02', rooms: 3, area: 91.8, balcony: 11.9, gross: 103.7, type: '3 Otaqlı • 11.9m² Panoramik Terraslı' },
+        { code: '03', rooms: 2, area: 60.6, balcony: 11.8, gross: 72.4, type: '2 Otaqlı • 11.8m² Terraslı' },
+        { code: '04', rooms: 2, area: 60.6, balcony: 11.8, gross: 72.4, type: '2 Otaqlı • 11.8m² Terraslı' },
+        { code: '05', rooms: 2, area: 64.0, balcony: 7.1, gross: 71.1, type: '2 Otaqlı • 7.1m² Terraslı' },
+        { code: '06', rooms: 2, area: 64.0, balcony: 7.1, gross: 71.1, type: '2 Otaqlı • 7.1m² Terraslı' },
+        { code: '07', rooms: 2, area: 60.6, balcony: 11.8, gross: 72.3, type: '2 Otaqlı • 11.8m² Terraslı' },
+        { code: '08', rooms: 2, area: 60.6, balcony: 11.7, gross: 72.4, type: '2 Otaqlı • 11.7m² Terraslı' },
+        { code: '09', rooms: 4, area: 111.2, balcony: 13.3, gross: 124.5, type: '4 Otaqlı • 13.3m² Böyük Terraslı İcraçı Suite' },
+        { code: '10', rooms: 2, area: 76.8, balcony: 13.8, gross: 90.6, type: '2 Otaqlı • 13.8m² Terraslı' },
+        { code: '11', rooms: 2, area: 60.9, balcony: 11.8, gross: 72.7, type: '2 Otaqlı • 11.8m² Terraslı' },
+        { code: '12', rooms: 2, area: 64.7, balcony: 10.6, gross: 75.3, type: '2 Otaqlı • 10.6m² Terraslı' },
+        { code: '13', rooms: 2, area: 65.5, balcony: 12.5, gross: 76.3, type: '2 Otaqlı • 12.5m² Terraslı' },
+        { code: '14', rooms: 2, area: 60.9, balcony: 10.8, gross: 73.4, type: '2 Otaqlı • 10.8m² Terraslı' },
+        { code: '15', rooms: 2, area: 64.3, balcony: 11.9, gross: 76.2, type: '2 Otaqlı • 11.9m² Terraslı' },
+        { code: '16', rooms: 3, area: 83.3, balcony: 12.4, gross: 95.7, type: '3 Otaqlı • 12.4m² Terraslı Premium' },
+      ];
+      floor11Schedule.forEach((t, idx) => {
+        apts.push({
+          id: `B-11${t.code}`,
+          bldg: 'blok_b',
+          floor: 11,
+          number: `11${t.code}`,
+          rooms: t.rooms,
+          area: t.area,
+          balcony: t.balcony,
+          gross: t.gross,
+          price: Math.round(t.area * 1850),
+          status: idx % 3 === 0 ? 'sold' : 'available',
+          desc: `Blok B (Marneuli) • ${t.type}`
+        });
+      });
+
+      // Floor 12: Penthouse Floor Plan (11 Penthouses + Large Open-Air Roof Terraces from Artstudio Page 16)
+      const floor12Schedule = [
+        { code: '01', rooms: 3, area: 99.8, balcony: 25.4, gross: 128.8, type: '3 Otaqlı • 25.4m² Açıq Terraslı Penthouse' },
+        { code: '02', rooms: 3, area: 77.6, balcony: 18.5, gross: 84.4, type: '3 Otaqlı • 18.5m² Eyvanlı Penthouse' },
+        { code: '03', rooms: 2, area: 56.9, balcony: 24.8, gross: 110.8, type: '2 Otaqlı • 24.8m² Geniş Terraslı Penthouse' },
+        { code: '04', rooms: 3, area: 104.2, balcony: 24.8, gross: 129.4, type: '3 Otaqlı • 24.8m² Panoramik Penthouse' },
+        { code: '05', rooms: 3, area: 103.6, balcony: 25.2, gross: 124.6, type: '3 Otaqlı • 25.2m² Terraslı Penthouse' },
+        { code: '06', rooms: 3, area: 99.8, balcony: 25.2, gross: 124.6, type: '3 Otaqlı • 25.2m² Terraslı Penthouse' },
+        { code: '07', rooms: 2, area: 74.5, balcony: 13.0, gross: 93.0, type: '2 Otaqlı • 13m² Terraslı Penthouse' },
+        { code: '08', rooms: 2, area: 52.9, balcony: 28.4, gross: 78.3, type: '2 Otaqlı • 28.4m² Böyük Terraslı Penthouse' },
+        { code: '09', rooms: 2, area: 58.6, balcony: 12.4, gross: 87.0, type: '2 Otaqlı • 12.4m² Terraslı Penthouse' },
+        { code: '10', rooms: 4, area: 115.8, balcony: 33.2, gross: 140.6, type: '4 Otaqlı • 33.2m² Nəhəng Terraslı Kral Penthouse' },
+        { code: '11', rooms: 2, area: 52.2, balcony: 12.4, gross: 65.2, type: '2 Otaqlı • 12.4m² Terraslı Penthouse' },
+      ];
+      floor12Schedule.forEach((t, idx) => {
+        apts.push({
+          id: `B-12${t.code}`,
+          bldg: 'blok_b',
+          floor: 12,
+          number: `12${t.code}`,
+          rooms: t.rooms,
+          area: t.area,
+          balcony: t.balcony,
+          gross: t.gross,
+          price: Math.round(t.area * 2100),
+          status: idx === 0 ? 'available' : (idx === 1 ? 'reserved' : 'available'),
+          desc: `Blok B (Marneuli) • ${t.type}`
+        });
+      });
+
       return apts;
     }
 
     const DEFAULT_APARTMENTS = generateInitialApartments();
 
     function getApartments() {
-      const stored = localStorage.getItem('digiwyze_apartments_v3');
+      const stored = localStorage.getItem('digiwyze_apartments_v5');
       if (stored) {
         try {
           const parsed = JSON.parse(stored);
-          if (parsed && parsed.length >= 100) return parsed;
+          if (parsed && parsed.length >= 200) return parsed;
         } catch (e) {}
       }
-      localStorage.setItem('digiwyze_apartments_v3', JSON.stringify(DEFAULT_APARTMENTS));
+      localStorage.setItem('digiwyze_apartments_v5', JSON.stringify(DEFAULT_APARTMENTS));
       return DEFAULT_APARTMENTS;
     }
 
     function saveApartments(data) {
-      localStorage.setItem('digiwyze_apartments_v3', JSON.stringify(data));
+      localStorage.setItem('digiwyze_apartments_v5', JSON.stringify(data));
       updateUIWithData();
     }
 
@@ -3117,6 +3252,30 @@
       if (window.lucide) lucide.createIcons();
     }
 
+    // Plan blueprint zoom controls
+    let planZoomLevel = 1.0;
+    function zoomPlanImg(factor) {
+      const img = document.getElementById('marneuli-plan-img');
+      if (!img) return;
+      planZoomLevel = Math.max(0.7, Math.min(3.0, planZoomLevel * factor));
+      img.style.transform = `scale(${planZoomLevel})`;
+      img.style.cursor = planZoomLevel > 1.05 ? 'zoom-out' : 'zoom-in';
+    }
+    function resetPlanZoom() {
+      const img = document.getElementById('marneuli-plan-img');
+      if (!img) return;
+      planZoomLevel = 1.0;
+      img.style.transform = 'scale(1)';
+      img.style.cursor = 'zoom-in';
+    }
+    function togglePlanZoom(img) {
+      if (planZoomLevel > 1.1) {
+        resetPlanZoom();
+      } else {
+        zoomPlanImg(1.6);
+      }
+    }
+
     function update2DPlanView(floorNum) {
       const bldg = BUILDINGS[currentBuildingId] || BUILDINGS['blok_a'];
       const f = parseInt(floorNum) || 3;
@@ -3129,6 +3288,33 @@
       if (planSelect && parseInt(planSelect.value) !== f) {
         planSelect.value = f;
       }
+
+      const svgElem = document.getElementById('plan-svg-elem');
+      const marneuliContainer = document.getElementById('marneuli-plan-container');
+      const marneuliImg = document.getElementById('marneuli-plan-img');
+      const marneuliBadge = document.getElementById('marneuli-plan-badge');
+
+      if (currentBuildingId === 'blok_b') {
+        if (svgElem) svgElem.style.display = 'none';
+        if (marneuliContainer) marneuliContainer.style.display = 'flex';
+        resetPlanZoom();
+
+        // Switch to the authentic high-resolution architectural drawing from Artstudio
+        if (f === 1) {
+          if (marneuliImg) marneuliImg.src = 'marneuli_plan_ground.png';
+          if (marneuliBadge) marneuliBadge.innerText = 'ARTSTUDIO PROJECT • MƏRTƏBƏ 1 (HƏYƏTYANI MƏNZİLLƏR VƏ KOMMERSİYA)';
+        } else if (f >= 11) {
+          if (marneuliImg) marneuliImg.src = 'marneuli_plan_penthouse.png';
+          if (marneuliBadge) marneuliBadge.innerText = `ARTSTUDIO PROJECT • MƏRTƏBƏ ${f} (${f === 12 ? 'PENTHOUSE VƏ AÇIQ ROOF-TERRASLAR' : 'İCRAÇI SÜİTLƏR VƏ ÖZƏL TERRASLAR'})`;
+        } else {
+          if (marneuliImg) marneuliImg.src = 'marneuli_plan_typical.png';
+          if (marneuliBadge) marneuliBadge.innerText = `ARTSTUDIO PROJECT • MƏRTƏBƏ ${f} (TİPİK 17 MƏNZİLLİ REZİDENSİYA PLANI)`;
+        }
+      } else {
+        if (svgElem) svgElem.style.display = 'block';
+        if (marneuliContainer) marneuliContainer.style.display = 'none';
+      }
+
       const floorApts = apartments.filter(a => (a.bldg ? a.bldg === currentBuildingId : currentBuildingId === 'blok_a') && a.floor === f);
 
       // Populate Apartment Selector Pills in Floor Plan Header
@@ -3140,51 +3326,59 @@
           pill.className = `plan-apt-pill ${currentSelectedAptCode === apt.number ? 'active' : ''}`;
           pill.setAttribute('data-apt-code', apt.number);
           const statusDot = apt.status === 'available' ? '🟢' : (apt.status === 'reserved' ? '🟡' : '🔴');
-          pill.innerHTML = `<span>${statusDot} Mənzil ${apt.number}</span> <span style="opacity:0.75; font-size:10px;">(${apt.rooms} Ot. • ${apt.area} m²)</span>`;
+          const balconyTag = apt.balcony ? ` +${apt.balcony}m²t` : '';
+          pill.innerHTML = `<span>${statusDot} № ${apt.number}</span> <span style="opacity:0.75; font-size:10px;">(${apt.rooms} Ot. • ${apt.area} m²${balconyTag})</span>`;
           pill.onclick = (e) => {
             e.stopPropagation();
             selectApartmentByCode(apt.number);
-            const suffix = apt.number.slice(-2);
-            selectApartmentSector(suffix);
+            if (currentBuildingId === 'blok_a') {
+              const suffix = apt.number.slice(-2);
+              selectApartmentSector(suffix);
+            }
           };
           pillsContainer.appendChild(pill);
         });
       }
 
-      floorApts.forEach((apt, idx) => {
-        const titleEl = document.getElementById(`svg-title-${idx}`);
-        const metaEl = document.getElementById(`svg-meta-${idx}`);
-        const priceEl = document.getElementById(`svg-price-${idx}`);
-        const zoneEl = document.getElementById(`svg-zone-${idx}`);
+      // If Blok A, update SVG dynamic badges
+      if (currentBuildingId === 'blok_a') {
+        floorApts.forEach((apt, idx) => {
+          const tEl = document.getElementById(`svg-title-${idx}`);
+          const mEl = document.getElementById(`svg-meta-${idx}`);
+          const pEl = document.getElementById(`svg-price-${idx}`);
+          const zEl = document.getElementById(`svg-zone-${idx}`);
 
-        if (titleEl && apt) {
-          titleEl.textContent = `Mənzil ${apt.number}`;
-          if (metaEl) metaEl.textContent = `• ${apt.rooms} Otaq • ${apt.area} m²`;
-          if (priceEl) priceEl.textContent = `${formatMoney(apt.price)} AZN`;
+          if (tEl && apt) {
+            tEl.textContent = `Mənzil ${apt.number}`;
+            if (mEl) mEl.textContent = `• ${apt.rooms} Otaq • ${apt.area} m²`;
+            if (pEl) pEl.textContent = `${formatMoney(apt.price)} AZN`;
 
-          // Zone border color based on status
-          const rect = zoneEl ? zoneEl.querySelector('rect') : null;
-          if (rect) {
-            if (apt.status === 'available') {
-              rect.setAttribute('stroke', '#10b981');
-            } else if (apt.status === 'reserved') {
-              rect.setAttribute('stroke', '#f59e0b');
-            } else {
-              rect.setAttribute('stroke', '#ef4444');
+            // Zone border color based on status
+            const rect = zEl ? zEl.querySelector('rect') : null;
+            if (rect) {
+              if (apt.status === 'available') {
+                rect.setAttribute('stroke', '#10b981');
+              } else if (apt.status === 'reserved') {
+                rect.setAttribute('stroke', '#f59e0b');
+              } else {
+                rect.setAttribute('stroke', '#ef4444');
+              }
             }
           }
-        }
-      });
+        });
+      }
 
-      // Default select first apartment & its living room safely
+      // Default select first apartment & its room safely
       const targetApt = floorApts[0] || apartments.find(a => (a.bldg ? a.bldg === currentBuildingId : currentBuildingId === 'blok_a') && a.floor === f);
       if (targetApt) {
         selectApartmentByCode(targetApt.number);
       }
 
-      const firstRoom = document.querySelector('.svg-room-zone[data-apt="01"][data-room-key="living"]');
-      if (firstRoom) {
-        selectRoom(firstRoom, '01', 'living', 'Qonaq Otağı', 28.5);
+      if (currentBuildingId === 'blok_a') {
+        const firstRoom = document.querySelector('.svg-room-zone[data-apt="01"][data-room-key="living"]');
+        if (firstRoom) {
+          selectRoom(firstRoom, '01', 'living', 'Qonaq Otağı', 28.5);
+        }
       }
     }
 
@@ -3216,17 +3410,34 @@
       const sideArea = document.getElementById('side-area');
       const sideRooms = document.getElementById('side-rooms');
       const pill = document.getElementById('side-status-pill');
+      const roomBadge = document.getElementById('side-selected-room-badge');
+      const roomText = document.getElementById('side-room-text');
 
       if (sideAptNum) sideAptNum.innerText = `Mənzil ${apt.number} (${bldg.blokName})`;
-      if (sideAptSubtitle) sideAptSubtitle.innerText = `${bldg.blokName} • Mərtəbə ${apt.floor} • Şəhər və Panoramik Mənzərə`;
+      if (sideAptSubtitle) {
+        const balconyInfo = apt.balcony ? ` • Eyvan/Terras: ${apt.balcony} m²` : '';
+        sideAptSubtitle.innerText = `${bldg.blokName} • Mərtəbə ${apt.floor}${balconyInfo} • Real Memarlıq Layihəsi`;
+      }
       if (sidePrice) sidePrice.innerText = `${formatMoney(apt.price)} AZN`;
       if (sidePriceM2) sidePriceM2.innerText = `1 m² = ${formatMoney(Math.round(apt.price / apt.area))} AZN`;
-      if (sideArea) sideArea.innerText = `${apt.area} m²`;
+      
+      if (sideArea) {
+        if (apt.gross && apt.gross !== apt.area) {
+          sideArea.innerHTML = `${apt.area} m² <span style="font-size:11px; color:#94a3b8; font-weight:normal; display:block; margin-top:2px;">(Ümumi: ${apt.gross} m²)</span>`;
+        } else {
+          sideArea.innerText = `${apt.area} m²`;
+        }
+      }
       if (sideRooms) sideRooms.innerText = `${apt.rooms} Otaqlı`;
 
       if (pill) {
         pill.className = `status-pill status-${apt.status}`;
         pill.innerText = apt.status === 'available' ? 'Satışda' : (apt.status === 'reserved' ? 'Rezervdə' : 'Satılıb');
+      }
+
+      if (apt.desc && roomBadge && roomText) {
+        roomBadge.style.display = 'flex';
+        roomText.innerHTML = `<strong>Təyinat:</strong> ${apt.desc}`;
       }
     }
 
