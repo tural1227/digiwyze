@@ -1958,24 +1958,24 @@
               <span style="font-size:12px; font-weight:700; color:#e2e8f0; font-family:monospace;" id="marneuli-plan-badge">ARTSTUDIO PROJECT • PHASE 1 MEMARLIQ PLANI</span>
             </div>
 
-            <!-- View Switcher Tabs: Grid Mode vs Blueprint Hotspots -->
+            <!-- View Switcher Tabs: HD Blueprint Hotspots (Default) vs Grid Mode -->
             <div style="display:flex; gap:6px; background:rgba(15,23,42,0.85); backdrop-filter:blur(10px); border:1px solid rgba(255,255,255,0.1); border-radius:10px; padding:3px;">
-              <button id="marneuli-tab-grid" class="action-btn active" style="padding:5px 12px; font-size:12px; font-weight:700; border-radius:7px;" onclick="switchMarneuliPlanTab('grid')">
-                <i data-lucide="layout-grid" style="width:14px; height:14px; margin-right:4px;"></i> İnteraktiv Mənzil Şəbəkəsi
-              </button>
-              <button id="marneuli-tab-blueprint" class="action-btn" style="padding:5px 12px; font-size:12px; font-weight:700; border-radius:7px;" onclick="switchMarneuliPlanTab('blueprint')">
+              <button id="marneuli-tab-blueprint" class="action-btn active" style="padding:5px 14px; font-size:12px; font-weight:700; border-radius:7px;" onclick="switchMarneuliPlanTab('blueprint')">
                 <i data-lucide="map-pin" style="width:14px; height:14px; margin-right:4px;"></i> HD Çertyoj & Pinlər
+              </button>
+              <button id="marneuli-tab-grid" class="action-btn" style="padding:5px 14px; font-size:12px; font-weight:700; border-radius:7px;" onclick="switchMarneuliPlanTab('grid')">
+                <i data-lucide="layout-grid" style="width:14px; height:14px; margin-right:4px;"></i> Mənzil Kartları Cədvəli
               </button>
             </div>
           </div>
 
-          <!-- View 1: Interactive Unit Matrix (Grouped by Wings, click any card to select apartment) -->
-          <div id="marneuli-grid-view" style="flex:1; width:100%; overflow-y:auto; overflow-x:hidden; padding-right:6px; box-sizing:border-box;">
+          <!-- View 1: Interactive Unit Matrix (Grouped by Wings) -->
+          <div id="marneuli-grid-view" style="display:none; flex:1; width:100%; overflow-y:auto; overflow-x:hidden; padding-right:6px; box-sizing:border-box;">
             <!-- Dynamically populated by renderMarneuliApartmentGrid() -->
           </div>
 
-          <!-- View 2: HD Architectural Blueprint with Overlaid Hotspot Pins -->
-          <div id="marneuli-blueprint-view" style="display:none; flex:1; width:100%; position:relative; overflow:hidden; border-radius:14px; background:#080d1a;">
+          <!-- View 2: HD Architectural Blueprint with Overlaid Hotspot Pins (Default Active) -->
+          <div id="marneuli-blueprint-view" style="display:flex; flex:1; width:100%; position:relative; overflow:hidden; border-radius:14px; background:#080d1a;">
             <div id="marneuli-plan-viewport" style="width:100%; height:100%; display:flex; align-items:center; justify-content:center; overflow:hidden; position:relative;">
               <div id="marneuli-blueprint-wrapper" style="position:relative; display:inline-block; max-width:96%; max-height:96%; transition:transform 0.25s ease-out;">
                 <img id="marneuli-plan-img" src="marneuli_plan_typical.png" alt="Marneuli Architectural Floor Plan" style="width:100%; height:auto; max-height:85vh; object-fit:contain; border-radius:8px; filter:drop-shadow(0 15px 35px rgba(0,0,0,0.85)); cursor:zoom-in;" onclick="togglePlanZoom(this)" title="Böyütmək üçün klikləyin" />
@@ -2001,7 +2001,7 @@
           <div>
             <span class="status-pill status-available" id="side-status-pill">Satışda</span>
             <h2 id="side-apt-num" style="font-size:26px; font-weight:800; margin-top:6px;">Mənzil 301</h2>
-            <p id="side-apt-subtitle" style="font-size:13px; color:var(--text-muted);">Mərtəbə 3 • Şəhər və Dəniz Panoraması</p>
+            <p id="side-apt-subtitle" style="font-size:13px; color:var(--text-muted);">Mərtəbə 3 • Şəhər və Dağ Panoraması</p>
           </div>
         </div>
 
@@ -2015,6 +2015,23 @@
           <div style="font-size:12px; color:var(--text-muted); font-weight:600;">ÜMUMİ DƏYƏR</div>
           <div id="side-price" style="font-size:30px; font-weight:800; color:var(--accent); margin:4px 0;">190,000 AZN</div>
           <div id="side-price-m2" style="font-size:12px; color:#cbd5e1;">1 m² = 1,696 AZN</div>
+        </div>
+
+        <!-- Interactive 2D Unit Floor Plan Card (Shows individual apartment layout) -->
+        <div id="side-unit-plan-card" style="background:rgba(15,23,42,0.85); border:1px solid rgba(56,189,248,0.3); border-radius:16px; padding:16px; margin-bottom:18px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+            <div style="display:flex; align-items:center; gap:6px;">
+              <span style="font-size:14px;">📐</span>
+              <span style="font-size:12px; font-weight:700; color:#e2e8f0; text-transform:uppercase; letter-spacing:0.5px;">Mənzil Planı (2D Sxem)</span>
+            </div>
+            <span style="font-size:10px; color:#38bdf8; font-weight:600; background:rgba(56,189,248,0.12); padding:3px 8px; border-radius:10px;" id="side-plan-type-label">Memarlıq Sxemi</span>
+          </div>
+          <!-- Dynamic SVG Unit Floor Plan Container -->
+          <div id="side-unit-svg-container" style="width:100%; min-height:185px; background:#080e1e; border-radius:10px; display:flex; align-items:center; justify-content:center; overflow:hidden; border:1px solid rgba(255,255,255,0.08); position:relative;">
+          </div>
+          <div style="font-size:10px; color:#94a3b8; text-align:center; margin-top:8px;">
+            💡 Otağın üzərinə klikləyərək birbaşa 360° virtual tura keçin
+          </div>
         </div>
 
         <!-- Specifications Grid -->
@@ -2279,7 +2296,7 @@
       for (let f = 1; f <= 14; f++) {
         const floorTypes = [
           { num: `${f}01`, rooms: 2, area: 68, basePrice: 105000, type: '2 Otaqlı • Şəhər Panoraması' },
-          { num: `${f}02`, rooms: 3, area: 112, basePrice: 180000, type: '3 Otaqlı • Dəniz & Park Panoraması' },
+          { num: `${f}02`, rooms: 3, area: 112, basePrice: 180000, type: '3 Otaqlı • Təbiət & Dağ Panoraması' },
           { num: `${f}03`, rooms: 1, area: 46, basePrice: 75000, type: '1 Otaqlı • Studio' },
           { num: `${f}04`, rooms: 4, area: 145, basePrice: 245000, type: '4 Otaqlı • Lüks Panoramik Mənzil' },
         ];
@@ -3571,7 +3588,7 @@
     // ==========================================
     // MARNEULI INTERACTIVE FLOOR PLAN & BLUEPRINT
     // ==========================================
-    let currentMarneuliPlanTab = 'grid';
+    let currentMarneuliPlanTab = 'blueprint';
     function switchMarneuliPlanTab(tab) {
       currentMarneuliPlanTab = tab;
       const btnGrid = document.getElementById('marneuli-tab-grid');
@@ -3849,6 +3866,7 @@
         // Render both the interactive card matrix and blueprint hotspots
         renderMarneuliApartmentGrid(f);
         renderMarneuliHotspots(f);
+        switchMarneuliPlanTab(currentMarneuliPlanTab || 'blueprint');
       } else {
         if (svgElem) svgElem.style.display = 'block';
         if (marneuliContainer) marneuliContainer.style.display = 'none';
@@ -3921,6 +3939,192 @@
       }
     }
 
+    function renderSideUnitPlan(apt) {
+      const container = document.getElementById('side-unit-svg-container');
+      const label = document.getElementById('side-plan-type-label');
+      if (!container) return;
+
+      if (label) {
+        label.innerText = `${apt.rooms} Otaqlı • ${apt.area} m² Plan`;
+      }
+
+      let svgHtml = '';
+      if (apt.rooms === 1) {
+        // 1-Room Studio
+        svgHtml = `
+          <svg viewBox="0 0 280 170" style="width:100%; height:100%; max-height:185px;">
+            <defs>
+              <pattern id="cadGrid1" width="10" height="10" patternUnits="userSpaceOnUse">
+                <path d="M 10 0 L 0 0 0 10" fill="none" stroke="rgba(255,255,255,0.04)" stroke-width="0.5"/>
+              </pattern>
+            </defs>
+            <rect width="280" height="170" fill="url(#cadGrid1)" />
+            <rect x="15" y="15" width="250" height="140" fill="rgba(15,23,42,0.6)" stroke="#38bdf8" stroke-width="2.5" rx="4" />
+            
+            <g class="side-cad-room" style="cursor:pointer;" onclick="openTourModal('${apt.number}', 'living')">
+              <rect x="20" y="20" width="150" height="95" fill="rgba(56,189,248,0.12)" stroke="#0284c7" stroke-width="1.5" rx="3" />
+              <rect x="30" y="30" width="55" height="25" rx="3" fill="rgba(255,255,255,0.1)" stroke="rgba(255,255,255,0.3)" />
+              <rect x="95" y="32" width="25" height="20" rx="2" fill="rgba(255,255,255,0.08)" stroke="rgba(255,255,255,0.2)" />
+              <text x="95" y="80" fill="#e2e8f0" font-size="11" font-weight="700" text-anchor="middle">🛋️ Qonaq & Studio Zalı</text>
+              <text x="95" y="95" fill="#38bdf8" font-size="9" text-anchor="middle">28.4 m² • 360°</text>
+            </g>
+
+            <g class="side-cad-room" style="cursor:pointer;" onclick="openTourModal('${apt.number}', 'kitchen')">
+              <rect x="175" y="20" width="85" height="60" fill="rgba(16,185,129,0.12)" stroke="#059669" stroke-width="1.5" rx="3" />
+              <rect x="180" y="25" width="75" height="15" fill="rgba(255,255,255,0.1)" stroke="rgba(255,255,255,0.3)" />
+              <text x="217" y="55" fill="#e2e8f0" font-size="10" font-weight="700" text-anchor="middle">🍽️ Mətbəx</text>
+              <text x="217" y="68" fill="#34d399" font-size="8.5" text-anchor="middle">9.8 m² • 360°</text>
+            </g>
+
+            <g class="side-cad-room">
+              <rect x="175" y="85" width="85" height="65" fill="rgba(244,63,94,0.1)" stroke="#e11d48" stroke-width="1.5" rx="3" />
+              <rect x="182" y="92" width="30" height="18" rx="4" fill="none" stroke="rgba(255,255,255,0.3)" />
+              <text x="217" y="125" fill="#e2e8f0" font-size="9.5" font-weight="600" text-anchor="middle">🚿 Vanna / SQ</text>
+              <text x="217" y="138" fill="#fda4af" font-size="8" text-anchor="middle">4.8 m²</text>
+            </g>
+
+            <g class="side-cad-room" style="cursor:pointer;" onclick="openTourModal('${apt.number}', 'panoramic')">
+              <rect x="20" y="120" width="150" height="30" fill="rgba(234,179,8,0.12)" stroke="#ca8a04" stroke-width="1.5" stroke-dasharray="4,2" rx="3" />
+              <text x="95" y="139" fill="#fde047" font-size="10" font-weight="700" text-anchor="middle">🌿 Panoramik Eyvan (4.6 m²)</text>
+            </g>
+          </svg>
+        `;
+      } else if (apt.rooms === 2) {
+        // 2-Room
+        svgHtml = `
+          <svg viewBox="0 0 280 170" style="width:100%; height:100%; max-height:185px;">
+            <defs>
+              <pattern id="cadGrid2" width="10" height="10" patternUnits="userSpaceOnUse">
+                <path d="M 10 0 L 0 0 0 10" fill="none" stroke="rgba(255,255,255,0.04)" stroke-width="0.5"/>
+              </pattern>
+            </defs>
+            <rect width="280" height="170" fill="url(#cadGrid2)" />
+            <rect x="15" y="15" width="250" height="140" fill="rgba(15,23,42,0.6)" stroke="#38bdf8" stroke-width="2.5" rx="4" />
+            
+            <g class="side-cad-room" style="cursor:pointer;" onclick="openTourModal('${apt.number}', 'living')">
+              <rect x="20" y="20" width="120" height="90" fill="rgba(56,189,248,0.12)" stroke="#0284c7" stroke-width="1.5" rx="3" />
+              <rect x="28" y="28" width="45" height="20" rx="3" fill="rgba(255,255,255,0.1)" stroke="rgba(255,255,255,0.3)" />
+              <text x="80" y="75" fill="#e2e8f0" font-size="11" font-weight="700" text-anchor="middle">🛋️ Qonaq Zalı</text>
+              <text x="80" y="90" fill="#38bdf8" font-size="9" text-anchor="middle">26.8 m² • 360°</text>
+            </g>
+
+            <g class="side-cad-room" style="cursor:pointer;" onclick="openTourModal('${apt.number}', 'bedroom')">
+              <rect x="145" y="20" width="115" height="75" fill="rgba(168,85,247,0.12)" stroke="#9333ea" stroke-width="1.5" rx="3" />
+              <rect x="175" y="26" width="38" height="30" rx="3" fill="rgba(255,255,255,0.1)" stroke="rgba(255,255,255,0.3)" />
+              <text x="202" y="72" fill="#e2e8f0" font-size="10" font-weight="700" text-anchor="middle">🛏️ Master Yataq</text>
+              <text x="202" y="85" fill="#c084fc" font-size="8.5" text-anchor="middle">18.2 m² • 360°</text>
+            </g>
+
+            <g class="side-cad-room" style="cursor:pointer;" onclick="openTourModal('${apt.number}', 'kitchen')">
+              <rect x="20" y="115" width="80" height="35" fill="rgba(16,185,129,0.12)" stroke="#059669" stroke-width="1.5" rx="3" />
+              <text x="60" y="132" fill="#e2e8f0" font-size="9.5" font-weight="700" text-anchor="middle">🍽️ Mətbəx</text>
+              <text x="60" y="144" fill="#34d399" font-size="8" text-anchor="middle">12.4 m² • 360°</text>
+            </g>
+
+            <g class="side-cad-room">
+              <rect x="105" y="115" width="55" height="35" fill="rgba(244,63,94,0.1)" stroke="#e11d48" stroke-width="1.5" rx="3" />
+              <text x="132" y="132" fill="#e2e8f0" font-size="9" font-weight="600" text-anchor="middle">🚿 SQ</text>
+              <text x="132" y="144" fill="#fda4af" font-size="7.5" text-anchor="middle">5.4 m²</text>
+            </g>
+
+            <g class="side-cad-room" style="cursor:pointer;" onclick="openTourModal('${apt.number}', 'panoramic')">
+              <rect x="165" y="100" width="95" height="50" fill="rgba(234,179,8,0.12)" stroke="#ca8a04" stroke-width="1.5" stroke-dasharray="4,2" rx="3" />
+              <text x="212" y="125" fill="#fde047" font-size="9.5" font-weight="700" text-anchor="middle">🌿 Eyvan</text>
+              <text x="212" y="139" fill="#fef08a" font-size="8" text-anchor="middle">5.0 m² • 360°</text>
+            </g>
+          </svg>
+        `;
+      } else if (apt.rooms === 3) {
+        // 3-Room
+        svgHtml = `
+          <svg viewBox="0 0 280 170" style="width:100%; height:100%; max-height:185px;">
+            <defs>
+              <pattern id="cadGrid3" width="10" height="10" patternUnits="userSpaceOnUse">
+                <path d="M 10 0 L 0 0 0 10" fill="none" stroke="rgba(255,255,255,0.04)" stroke-width="0.5"/>
+              </pattern>
+            </defs>
+            <rect width="280" height="170" fill="url(#cadGrid3)" />
+            <rect x="12" y="12" width="256" height="146" fill="rgba(15,23,42,0.6)" stroke="#38bdf8" stroke-width="2.5" rx="4" />
+
+            <g class="side-cad-room" style="cursor:pointer;" onclick="openTourModal('${apt.number}', 'living')">
+              <rect x="18" y="18" width="115" height="85" fill="rgba(56,189,248,0.12)" stroke="#0284c7" stroke-width="1.5" rx="3" />
+              <text x="75" y="65" fill="#e2e8f0" font-size="10.5" font-weight="700" text-anchor="middle">🛋️ Böyük Qonaq</text>
+              <text x="75" y="80" fill="#38bdf8" font-size="8.5" text-anchor="middle">34.5 m² • 360°</text>
+            </g>
+
+            <g class="side-cad-room" style="cursor:pointer;" onclick="openTourModal('${apt.number}', 'bedroom')">
+              <rect x="138" y="18" width="70" height="80" fill="rgba(168,85,247,0.12)" stroke="#9333ea" stroke-width="1.5" rx="3" />
+              <text x="173" y="62" fill="#e2e8f0" font-size="9" font-weight="700" text-anchor="middle">🛏️ Master</text>
+              <text x="173" y="75" fill="#c084fc" font-size="8" text-anchor="middle">20.1 m²</text>
+            </g>
+
+            <g class="side-cad-room" style="cursor:pointer;" onclick="openTourModal('${apt.number}', 'bedroom2')">
+              <rect x="212" y="18" width="50" height="80" fill="rgba(236,72,153,0.12)" stroke="#db2777" stroke-width="1.5" rx="3" />
+              <text x="237" y="62" fill="#e2e8f0" font-size="8.5" font-weight="700" text-anchor="middle">🛏️ 2-ci Yataq</text>
+              <text x="237" y="75" fill="#f472b6" font-size="7.5" text-anchor="middle">15.8 m²</text>
+            </g>
+
+            <g class="side-cad-room" style="cursor:pointer;" onclick="openTourModal('${apt.number}', 'kitchen')">
+              <rect x="18" y="108" width="85" height="44" fill="rgba(16,185,129,0.12)" stroke="#059669" stroke-width="1.5" rx="3" />
+              <text x="60" y="130" fill="#e2e8f0" font-size="9.5" font-weight="700" text-anchor="middle">🍽️ Şef Mətbəxi</text>
+              <text x="60" y="142" fill="#34d399" font-size="8" text-anchor="middle">14.2 m²</text>
+            </g>
+
+            <g class="side-cad-room">
+              <rect x="108" y="108" width="50" height="44" fill="rgba(244,63,94,0.1)" stroke="#e11d48" stroke-width="1.5" rx="3" />
+              <text x="133" y="132" fill="#e2e8f0" font-size="8.5" font-weight="600" text-anchor="middle">🚿 2x SQ</text>
+              <text x="133" y="143" fill="#fda4af" font-size="7.5" text-anchor="middle">7.5 m²</text>
+            </g>
+
+            <g class="side-cad-room" style="cursor:pointer;" onclick="openTourModal('${apt.number}', 'panoramic')">
+              <rect x="163" y="103" width="99" height="49" fill="rgba(234,179,8,0.12)" stroke="#ca8a04" stroke-width="1.5" stroke-dasharray="4,2" rx="3" />
+              <text x="212" y="126" fill="#fde047" font-size="9.5" font-weight="700" text-anchor="middle">🌟 Terras</text>
+              <text x="212" y="139" fill="#fef08a" font-size="8" text-anchor="middle">Panoramik • 360°</text>
+            </g>
+          </svg>
+        `;
+      } else {
+        // Penthouse
+        svgHtml = `
+          <svg viewBox="0 0 280 170" style="width:100%; height:100%; max-height:185px;">
+            <defs>
+              <pattern id="cadGrid4" width="10" height="10" patternUnits="userSpaceOnUse">
+                <path d="M 10 0 L 0 0 0 10" fill="none" stroke="rgba(255,255,255,0.04)" stroke-width="0.5"/>
+              </pattern>
+            </defs>
+            <rect width="280" height="170" fill="url(#cadGrid4)" />
+            <rect x="10" y="10" width="260" height="150" fill="rgba(15,23,42,0.6)" stroke="#f59e0b" stroke-width="2.5" rx="4" />
+
+            <g class="side-cad-room" style="cursor:pointer;" onclick="openTourModal('${apt.number}', 'living')">
+              <rect x="16" y="16" width="120" height="85" fill="rgba(245,158,11,0.12)" stroke="#d97706" stroke-width="1.5" rx="3" />
+              <text x="76" y="65" fill="#fef08a" font-size="11" font-weight="700" text-anchor="middle">👑 Penthouse Zalı</text>
+              <text x="76" y="80" fill="#fde047" font-size="9" text-anchor="middle">48.0 m² • 360°</text>
+            </g>
+
+            <g class="side-cad-room" style="cursor:pointer;" onclick="openTourModal('${apt.number}', 'bedroom')">
+              <rect x="142" y="16" width="65" height="85" fill="rgba(168,85,247,0.12)" stroke="#9333ea" stroke-width="1.5" rx="3" />
+              <text x="174" y="65" fill="#e2e8f0" font-size="9.5" font-weight="700" text-anchor="middle">🛏️ Suite</text>
+              <text x="174" y="78" fill="#c084fc" font-size="8" text-anchor="middle">26.0 m²</text>
+            </g>
+
+            <g class="side-cad-room" style="cursor:pointer;" onclick="openTourModal('${apt.number}', 'kitchen')">
+              <rect x="16" y="106" width="90" height="48" fill="rgba(16,185,129,0.12)" stroke="#059669" stroke-width="1.5" rx="3" />
+              <text x="61" y="132" fill="#e2e8f0" font-size="9.5" font-weight="700" text-anchor="middle">🍽️ Ada Mətbəx</text>
+              <text x="61" y="145" fill="#34d399" font-size="8" text-anchor="middle">20.0 m²</text>
+            </g>
+
+            <g class="side-cad-room" style="cursor:pointer;" onclick="openTourModal('${apt.number}', 'terrace')">
+              <rect x="112" y="106" width="152" height="48" fill="rgba(56,189,248,0.15)" stroke="#0284c7" stroke-width="1.5" stroke-dasharray="4,2" rx="3" />
+              <text x="188" y="130" fill="#38bdf8" font-size="10.5" font-weight="700" text-anchor="middle">🌿 360° Roof-Terras</text>
+              <text x="188" y="144" fill="#bae6fd" font-size="8.5" text-anchor="middle">40.0 m² • Panoramik</text>
+            </g>
+          </svg>
+        `;
+      }
+
+      container.innerHTML = svgHtml;
+    }
+
     function selectApartmentByCode(code) {
       let apt = apartments.find(a => (a.bldg ? a.bldg === currentBuildingId : currentBuildingId === 'blok_a') && (a.number === String(code) || a.id === String(code)));
       if (!apt) {
@@ -3978,6 +4182,9 @@
         roomBadge.style.display = 'flex';
         roomText.innerHTML = `<strong>Təyinat:</strong> ${apt.desc}`;
       }
+
+      // Render 2D architectural unit layout in sidebar
+      renderSideUnitPlan(apt);
 
       // Update active state in Marneuli interactive card grid & pins
       document.querySelectorAll('.marneuli-unit-card').forEach(c => {
