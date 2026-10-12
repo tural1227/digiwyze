@@ -2075,7 +2075,7 @@
         <span id="radar-room-name" style="color:#fff; font-size:10px;">Qonaq Zalı</span>
       </div>
       <svg class="radar-svg" viewBox="0 0 200 130" id="radar-svg">
-        <!-- 5 Rooms layout in Mini-Map -->
+        <!-- Rooms layout in Mini-Map matching the cohesive suite -->
         <g id="radar-rooms-group">
           <!-- Living Room (center left) -->
           <rect x="10" y="10" width="80" height="60" rx="4" class="radar-room active" id="radar-living" onclick="switchTourRoom('living')" />
@@ -2083,19 +2083,19 @@
 
           <!-- Master Bedroom (center right) -->
           <rect x="95" y="10" width="60" height="60" rx="4" class="radar-room" id="radar-bedroom" onclick="switchTourRoom('bedroom')" />
-          <text x="125" y="44" fill="#94a3b8" font-size="8" text-anchor="middle" pointer-events="none">Yataq</text>
+          <text x="125" y="44" fill="#94a3b8" font-size="8" text-anchor="middle" pointer-events="none">Master Yataq</text>
 
-          <!-- Panoramic Terrace (far right) -->
+          <!-- Panoramic Terrace / Balcony (far right) -->
           <rect x="160" y="10" width="30" height="110" rx="4" class="radar-room" id="radar-panoramic" onclick="switchTourRoom('panoramic')" />
-          <text x="175" y="68" fill="#38bdf8" font-size="8" text-anchor="middle" transform="rotate(90, 175, 68)" pointer-events="none">Terras</text>
+          <text x="175" y="68" fill="#38bdf8" font-size="8" text-anchor="middle" transform="rotate(90, 175, 68)" pointer-events="none">Eyvan / Terras</text>
 
-          <!-- Lounge / Fireplace (bottom left) -->
-          <rect x="10" y="75" width="80" height="45" rx="4" class="radar-room" id="radar-lounge" onclick="switchTourRoom('lounge')" />
-          <text x="50" y="102" fill="#94a3b8" font-size="8" text-anchor="middle" pointer-events="none">Şöminə</text>
+          <!-- Modern Open Kitchen (bottom left) -->
+          <rect x="10" y="75" width="80" height="45" rx="4" class="radar-room" id="radar-kitchen" onclick="switchTourRoom('kitchen')" />
+          <text x="50" y="102" fill="#94a3b8" font-size="8" text-anchor="middle" pointer-events="none">Mətbəx</text>
 
-          <!-- Ensuite (bottom center) -->
-          <rect x="95" y="75" width="60" height="45" rx="4" class="radar-room" id="radar-ensuite" onclick="switchTourRoom('ensuite')" />
-          <text x="125" y="102" fill="#94a3b8" font-size="8" text-anchor="middle" pointer-events="none">Vanna</text>
+          <!-- Second Bedroom / Study (bottom center) -->
+          <rect x="95" y="75" width="60" height="45" rx="4" class="radar-room" id="radar-bedroom2" onclick="switchTourRoom('bedroom2')" />
+          <text x="125" y="102" fill="#94a3b8" font-size="8" text-anchor="middle" pointer-events="none">2-ci Otaq</text>
         </g>
 
         <!-- Vision Cone & User Dot (Rotates dynamically with 360 camera!) -->
@@ -2128,12 +2128,12 @@
       </div>
 
       <div class="tour-bottom-bar">
-        <div class="tour-room-selector">
-          <button class="room-btn active" onclick="switchTourRoom('living')">🛋️ Əsas Qonaq Zalı (8K)</button>
-          <button class="room-btn" onclick="switchTourRoom('bedroom')">🛏️ Master Yataq Otağı (8K)</button>
-          <button class="room-btn" onclick="switchTourRoom('lounge')">🪵 Şöminə & Bilyard Zalı (8K)</button>
-          <button class="room-btn" onclick="switchTourRoom('ensuite')">🚿 En-Suite Vanna (8K)</button>
-          <button class="room-btn" onclick="switchTourRoom('panoramic')">🌟 Panoramik Terras Süiti (8K)</button>
+        <div class="tour-room-selector" id="tour-room-selector">
+          <!-- Dynamically populated per apartment room plan in openTourModal() -->
+          <button class="room-btn active" onclick="switchTourRoom('living')">🛋️ Əsas Qonaq Zalı (4K)</button>
+          <button class="room-btn" onclick="switchTourRoom('bedroom')">🛏️ Master Yataq Otağı (4K)</button>
+          <button class="room-btn" onclick="switchTourRoom('kitchen')">🍽️ Müasir Mətbəx (4K)</button>
+          <button class="room-btn" onclick="switchTourRoom('panoramic')">🌟 Panoramik Eyvan (4K)</button>
         </div>
 
         <!-- 360 Walkthrough Move Forward / Backward HUD Controls -->
@@ -2323,7 +2323,79 @@
         });
       });
 
-      // Typical Floors 2 through 10 (17 real apartments per floor directly from Artstudio Blueprint Page 31)
+      // Floor 2 Schedule (17 real apartments directly from Artstudio Blueprint Page 12)
+      const floor2Schedule = [
+        { code: '01', rooms: 2, area: 64.3, balcony: 5.0, gross: 69.3, type: '2 Otaqlı • 64.3m² Panoramik Eyvanlı' },
+        { code: '02', rooms: 2, area: 64.2, balcony: 5.0, gross: 69.2, type: '2 Otaqlı • 64.2m² Qərb Qanadı' },
+        { code: '03', rooms: 2, area: 65.5, balcony: 5.0, gross: 70.5, type: '2 Otaqlı • 65.5m² Sakit Həyət Baxışı' },
+        { code: '04', rooms: 1, area: 57.4, balcony: 4.6, gross: 62.0, type: '1 Otaqlı • 57.4m² Lüks Studio' },
+        { code: '05', rooms: 1, area: 59.7, balcony: 4.6, gross: 64.3, type: '1 Otaqlı • 59.7m² Studio Suite' },
+        { code: '06', rooms: 2, area: 71.9, balcony: 5.0, gross: 76.9, type: '2 Otaqlı • 71.9m² Park Panoraması' },
+        { code: '07', rooms: 2, area: 61.0, balcony: 5.0, gross: 66.0, type: '2 Otaqlı • 61.0m² Mərkəzi Qalereya' },
+        { code: '08', rooms: 2, area: 64.7, balcony: 5.0, gross: 69.7, type: '2 Otaqlı • 64.7m² Şərq Baxışı' },
+        { code: '09', rooms: 2, area: 65.8, balcony: 5.0, gross: 70.8, type: '2 Otaqlı • 65.8m² Ailəvi Rezidensiya' },
+        { code: '10', rooms: 2, area: 61.0, balcony: 5.0, gross: 66.0, type: '2 Otaqlı • 61.0m² Geniş Otaqlı' },
+        { code: '11', rooms: 2, area: 64.3, balcony: 5.0, gross: 69.3, type: '2 Otaqlı • 64.3m² Cənub İşıqlı' },
+        { code: '12', rooms: 2, area: 65.8, balcony: 5.0, gross: 70.8, type: '2 Otaqlı • 65.8m² Master Yataq Otaqlı' },
+        { code: '13', rooms: 2, area: 64.3, balcony: 5.0, gross: 69.3, type: '2 Otaqlı • 64.3m² Şərq Qanadı' },
+        { code: '14', rooms: 3, area: 95.3, balcony: 5.5, gross: 100.8, type: '3 Otaqlı • 95.3m² Geniş Lüks Rezidensiya' },
+        { code: '15', rooms: 2, area: 78.7, balcony: 5.5, gross: 84.2, type: '2 Otaqlı • 78.7m² Panoramik Künc' },
+        { code: '16', rooms: 3, area: 83.3, balcony: 5.0, gross: 88.3, type: '3 Otaqlı • 83.3m² Cənub-Şərq Panoraması' },
+        { code: '17', rooms: 2, area: 64.3, balcony: 5.0, gross: 69.3, type: '2 Otaqlı • 64.3m² Künc Mənzil' },
+      ];
+      floor2Schedule.forEach((t, idx) => {
+        apts.push({
+          id: `B-2${t.code}`,
+          bldg: 'blok_b',
+          floor: 2,
+          number: `2${t.code}`,
+          rooms: t.rooms,
+          area: t.area,
+          balcony: t.balcony,
+          gross: t.gross,
+          price: Math.round(t.area * 1580),
+          status: idx === 1 ? 'available' : ((idx % 3 === 0) ? 'reserved' : 'available'),
+          desc: `Blok B (Marneuli) • ${t.type}`
+        });
+      });
+
+      // Floor 3 Schedule (17 real apartments directly from Artstudio Blueprint Page 13)
+      const floor3Schedule = [
+        { code: '01', rooms: 2, area: 79.2, balcony: 5.0, gross: 84.2, type: '2 Otaqlı • 79.2m² Panoramik Eyvanlı' },
+        { code: '02', rooms: 3, area: 96.2, balcony: 4.6, gross: 100.8, type: '3 Otaqlı • 96.2m² Geniş Ailəvi Rezidensiya' },
+        { code: '03', rooms: 2, area: 64.4, balcony: 5.0, gross: 69.4, type: '2 Otaqlı • 64.4m² Sakit Həyət Baxışı' },
+        { code: '04', rooms: 2, area: 64.4, balcony: 5.0, gross: 69.4, type: '2 Otaqlı • 64.4m² Cənub Panoraması' },
+        { code: '05', rooms: 2, area: 68.7, balcony: 2.3, gross: 71.0, type: '2 Otaqlı • 68.7m² Həyət Mənzərəsi' },
+        { code: '06', rooms: 2, area: 68.7, balcony: 2.4, gross: 71.1, type: '2 Otaqlı • 68.7m² Park Baxışı' },
+        { code: '07', rooms: 2, area: 64.4, balcony: 5.0, gross: 69.4, type: '2 Otaqlı • 64.4m² Mərkəzi Qalereya' },
+        { code: '08', rooms: 2, area: 64.4, balcony: 5.0, gross: 69.4, type: '2 Otaqlı • 64.4m² Qərb Qanadı' },
+        { code: '09', rooms: 2, area: 60.5, balcony: 4.6, gross: 65.1, type: '2 Otaqlı • 60.5m² Şəhər Panoraması' },
+        { code: '10', rooms: 1, area: 57.9, balcony: 5.0, gross: 62.9, type: '1 Otaqlı • 57.9m² Kompakt Studio' },
+        { code: '11', rooms: 2, area: 76.8, balcony: 4.5, gross: 81.3, type: '2 Otaqlı • 76.8m² Master Yataq Otaqlı' },
+        { code: '12', rooms: 2, area: 64.8, balcony: 4.4, gross: 69.2, type: '2 Otaqlı • 64.8m² Şərq İşıqlı' },
+        { code: '13', rooms: 2, area: 68.6, balcony: 5.0, gross: 73.6, type: '2 Otaqlı • 68.6m² Geniş Eyvanlı' },
+        { code: '14', rooms: 2, area: 69.4, balcony: 4.6, gross: 74.0, type: '2 Otaqlı • 69.4m² Şərq Qanadı' },
+        { code: '15', rooms: 2, area: 64.9, balcony: 5.0, gross: 69.9, type: '2 Otaqlı • 64.9m² Panoramik Lüks' },
+        { code: '16', rooms: 2, area: 68.7, balcony: 4.5, gross: 73.2, type: '2 Otaqlı • 68.7m² Park Panoraması' },
+        { code: '17', rooms: 3, area: 87.7, balcony: 5.0, gross: 92.7, type: '3 Otaqlı • 87.7m² Premium Künc Rezidensiya' },
+      ];
+      floor3Schedule.forEach((t, idx) => {
+        apts.push({
+          id: `B-3${t.code}`,
+          bldg: 'blok_b',
+          floor: 3,
+          number: `3${t.code}`,
+          rooms: t.rooms,
+          area: t.area,
+          balcony: t.balcony,
+          gross: t.gross,
+          price: Math.round(t.area * 1620),
+          status: idx === 1 ? 'available' : ((idx === 2) ? 'reserved' : ((idx === 5) ? 'sold' : 'available')),
+          desc: `Blok B (Marneuli) • ${t.type}`
+        });
+      });
+
+      // Typical Floors 4 through 10 (17 real apartments per floor directly from Artstudio Blueprint Page 31)
       const typicalAptSchedule = [
         { code: '01', rooms: 1, area: 54.1, balcony: 3.7, gross: 57.8, type: '1 Otaqlı • Kompakt Mənzil' },
         { code: '02', rooms: 2, area: 70.1, balcony: 3.7, gross: 73.8, type: '2 Otaqlı • Panoramik Eyvanlı' },
@@ -2344,10 +2416,10 @@
         { code: '17', rooms: 3, area: 82.4, balcony: 3.7, gross: 86.1, type: '3 Otaqlı • Premium Künc Mənzil' },
       ];
 
-      for (let f = 2; f <= 10; f++) {
+      for (let f = 4; f <= 10; f++) {
         typicalAptSchedule.forEach((t, idx) => {
           const num = `${f}${t.code}`;
-          const status = (f === 3 && idx === 1) ? 'available' : ((f * 3 + idx) % 5 === 0 ? 'sold' : ((f + idx) % 4 === 0 ? 'reserved' : 'available'));
+          const status = (f * 3 + idx) % 5 === 0 ? 'sold' : ((f + idx) % 4 === 0 ? 'reserved' : 'available');
           apts.push({
             id: `B-${num}`,
             bldg: 'blok_b',
@@ -2357,7 +2429,7 @@
             area: t.area,
             balcony: t.balcony,
             gross: t.gross,
-            price: Math.round(t.area * (1580 + (f - 1) * 25)),
+            price: Math.round(t.area * (1620 + (f - 1) * 25)),
             status: status,
             desc: `Blok B (Marneuli) • ${t.type}`
           });
@@ -2435,19 +2507,19 @@
     const DEFAULT_APARTMENTS = generateInitialApartments();
 
     function getApartments() {
-      const stored = localStorage.getItem('digiwyze_apartments_v5');
+      const stored = localStorage.getItem('digiwyze_apartments_v7');
       if (stored) {
         try {
           const parsed = JSON.parse(stored);
           if (parsed && parsed.length >= 200) return parsed;
         } catch (e) {}
       }
-      localStorage.setItem('digiwyze_apartments_v5', JSON.stringify(DEFAULT_APARTMENTS));
+      localStorage.setItem('digiwyze_apartments_v7', JSON.stringify(DEFAULT_APARTMENTS));
       return DEFAULT_APARTMENTS;
     }
 
     function saveApartments(data) {
-      localStorage.setItem('digiwyze_apartments_v5', JSON.stringify(data));
+      localStorage.setItem('digiwyze_apartments_v7', JSON.stringify(data));
       updateUIWithData();
     }
 
@@ -2848,45 +2920,90 @@
 
       const bldg = BUILDINGS[currentBuildingId] || BUILDINGS['blok_a'];
       const b = bounds || currentBuildingBounds;
-      const floorCount = bldg.floorCount || 14;
-      const yStart = b.h * (bldg.yStartFraction !== undefined ? bldg.yStartFraction : 0.14);
-      const yEnd = b.h * (bldg.yEndFraction !== undefined ? bldg.yEndFraction : 0.94);
-      const floorH = (yEnd - yStart) / floorCount;
 
-      for (let f = 1; f <= floorCount; f++) {
-        const yCenter = yStart + (f - 0.5) * floorH;
+      if (currentBuildingId === 'blok_b') {
+        // Real architectural elevations directly from Section 1-1:
+        // Ground/Commercial: 0.0m - 4.0m (height 4.0m)
+        // Floors 2 to 12: exactly 3.2m floor-to-floor (Total residential elevation +42.0m)
+        const meterScale = b.h / 45.95;
+        for (let f = 1; f <= 12; f++) {
+          const yBottom = f === 1 ? 0.0 : (4.0 + (f - 2) * 3.2) * meterScale;
+          const yTop = f === 1 ? 4.0 * meterScale : (4.0 + (f - 1) * 3.2) * meterScale;
+          const yCenter = (yBottom + yTop) / 2;
+          const floorH = (yTop - yBottom) * 0.90; // Crisp vertical slab gap prevents any multi-floor overlap
 
-        const geo = new THREE.BoxGeometry(b.w * 0.96, floorH * 0.94, b.d * 0.96);
-        // Luxury golden yellow hover material
-        const mat = new THREE.MeshStandardMaterial({
-          color: 0xfacc15,       // Vibrant golden yellow
-          emissive: 0xd97706,    // Warm amber glow
-          emissiveIntensity: 0,
-          transparent: true,
-          opacity: 0,
-          roughness: 0.2,
-          metalness: 0.1,
-          depthWrite: false
-        });
+          // Tightly fit residential tower front facade (avoids 122m terrain depth)
+          const geo = new THREE.BoxGeometry(b.w * 0.74, floorH, b.d * 0.35);
+          const mat = new THREE.MeshStandardMaterial({
+            color: 0xfacc15,       // Vibrant golden yellow
+            emissive: 0xd97706,    // Warm amber glow
+            emissiveIntensity: 0,
+            transparent: true,
+            opacity: 0,
+            roughness: 0.2,
+            metalness: 0.1,
+            side: THREE.FrontSide, // Front faces only! Eliminates double-floor perspective illusion
+            depthWrite: false
+          });
 
-        const mesh = new THREE.Mesh(geo, mat);
-        mesh.position.set(b.cx, yCenter, b.cz);
-        mesh.userData = { floor: f };
+          const mesh = new THREE.Mesh(geo, mat);
+          mesh.position.set(b.cx, yCenter, b.cz);
+          mesh.userData = { floor: f };
 
-        // Crisp glowing golden wireframe edge border
-        const edges = new THREE.EdgesGeometry(geo);
-        const lineMat = new THREE.LineBasicMaterial({
-          color: 0xfef08a,
-          transparent: true,
-          opacity: 0,
-          linewidth: 2
-        });
-        const line = new THREE.LineSegments(edges, lineMat);
-        mesh.add(line);
-        mesh.userData.line = line;
+          const edges = new THREE.EdgesGeometry(geo);
+          const lineMat = new THREE.LineBasicMaterial({
+            color: 0xfef08a,
+            transparent: true,
+            opacity: 0,
+            linewidth: 2
+          });
+          const line = new THREE.LineSegments(edges, lineMat);
+          mesh.add(line);
+          mesh.userData.line = line;
 
-        buildingGroup.add(mesh);
-        floorHitboxes.push(mesh);
+          buildingGroup.add(mesh);
+          floorHitboxes.push(mesh);
+        }
+      } else {
+        const floorCount = bldg.floorCount || 14;
+        const yStart = b.h * (bldg.yStartFraction !== undefined ? bldg.yStartFraction : 0.14);
+        const yEnd = b.h * (bldg.yEndFraction !== undefined ? bldg.yEndFraction : 0.94);
+        const floorH = (yEnd - yStart) / floorCount;
+
+        for (let f = 1; f <= floorCount; f++) {
+          const yCenter = yStart + (f - 0.5) * floorH;
+
+          const geo = new THREE.BoxGeometry(b.w * 0.96, floorH * 0.94, b.d * 0.96);
+          const mat = new THREE.MeshStandardMaterial({
+            color: 0xfacc15,
+            emissive: 0xd97706,
+            emissiveIntensity: 0,
+            transparent: true,
+            opacity: 0,
+            roughness: 0.2,
+            metalness: 0.1,
+            side: THREE.FrontSide,
+            depthWrite: false
+          });
+
+          const mesh = new THREE.Mesh(geo, mat);
+          mesh.position.set(b.cx, yCenter, b.cz);
+          mesh.userData = { floor: f };
+
+          const edges = new THREE.EdgesGeometry(geo);
+          const lineMat = new THREE.LineBasicMaterial({
+            color: 0xfef08a,
+            transparent: true,
+            opacity: 0,
+            linewidth: 2
+          });
+          const line = new THREE.LineSegments(edges, lineMat);
+          mesh.add(line);
+          mesh.userData.line = line;
+
+          buildingGroup.add(mesh);
+          floorHitboxes.push(mesh);
+        }
       }
     }
 
@@ -3305,16 +3422,18 @@
       // Highlight the selected floor persistently in yellow
       if (floorNum > 0) {
         highlightFloorYellow(floorNum);
-        const yStart = currentBuildingBounds.h * (bldg.yStartFraction !== undefined ? bldg.yStartFraction : 0.14);
-        const yEnd = currentBuildingBounds.h * (bldg.yEndFraction !== undefined ? bldg.yEndFraction : 0.94);
-        const fH = (yEnd - yStart) / (bldg.floorCount || 14);
-        const floorY = yStart + (floorNum - 0.5) * fH;
         if (currentBuildingId === 'blok_b') {
+          const meterScale = currentBuildingBounds.h / 45.95;
+          const floorY = floorNum === 1 ? 2.0 * meterScale : (4.0 + (floorNum - 1.5) * 3.2) * meterScale;
           smoothMoveCamera(
-            new THREE.Vector3(0.0, floorY + 4.0, currentBuildingBounds.d * 1.35),
+            new THREE.Vector3(0.0, floorY + 3.0, currentBuildingBounds.d * 1.35),
             new THREE.Vector3(0.0, floorY, 0.0)
           );
         } else {
+          const yStart = currentBuildingBounds.h * (bldg.yStartFraction !== undefined ? bldg.yStartFraction : 0.14);
+          const yEnd = currentBuildingBounds.h * (bldg.yEndFraction !== undefined ? bldg.yEndFraction : 0.94);
+          const fH = (yEnd - yStart) / (bldg.floorCount || 14);
+          const floorY = yStart + (floorNum - 0.5) * fH;
           smoothMoveCamera(
             new THREE.Vector3(currentBuildingBounds.w * 0.72, floorY + 2.5, currentBuildingBounds.d * 1.05),
             new THREE.Vector3(currentBuildingBounds.cx, floorY, currentBuildingBounds.cz)
@@ -3708,14 +3827,23 @@
 
         // Switch to the authentic high-resolution architectural drawing from Artstudio
         if (f === 1) {
-          if (marneuliImg) marneuliImg.src = 'marneuli_plan_ground.png';
-          if (marneuliBadge) marneuliBadge.innerText = 'ARTSTUDIO PROJECT • MƏRTƏBƏ 1 (HƏYƏTYANI MƏNZİLLƏR VƏ KOMMERSİYA)';
-        } else if (f >= 11) {
-          if (marneuliImg) marneuliImg.src = 'marneuli_plan_penthouse.png';
-          if (marneuliBadge) marneuliBadge.innerText = `ARTSTUDIO PROJECT • MƏRTƏBƏ ${f} (${f === 12 ? 'PENTHOUSE VƏ AÇIQ ROOF-TERRASLAR' : 'İCRAÇI SÜİTLƏR VƏ ÖZƏL TERRASLAR'})`;
-        } else {
+          if (marneuliImg) marneuliImg.src = 'marneuli_plan_f1.png';
+          if (marneuliBadge) marneuliBadge.innerText = 'ARTSTUDIO PROJECT • MƏRTƏBƏ 1 (ZƏMİN & HƏYƏTYANI BAĞÇA MƏNZİLLƏRİ)';
+        } else if (f === 2) {
+          if (marneuliImg) marneuliImg.src = 'marneuli_plan_f2.png';
+          if (marneuliBadge) marneuliBadge.innerText = 'ARTSTUDIO PROJECT • MƏRTƏBƏ 2 (17 REAL MEMARLIQ MƏNZİLİ VƏ EYVANLAR)';
+        } else if (f === 3) {
+          if (marneuliImg) marneuliImg.src = 'marneuli_plan_f3.png';
+          if (marneuliBadge) marneuliBadge.innerText = 'ARTSTUDIO PROJECT • MƏRTƏBƏ 3 (17 REAL MEMARLIQ MƏNZİLİ VƏ PARK PANORAMASI)';
+        } else if (f >= 4 && f <= 10) {
           if (marneuliImg) marneuliImg.src = 'marneuli_plan_typical.png';
           if (marneuliBadge) marneuliBadge.innerText = `ARTSTUDIO PROJECT • MƏRTƏBƏ ${f} (TİPİK 17 MƏNZİLLİ REZİDENSİYA PLANI)`;
+        } else if (f === 11) {
+          if (marneuliImg) marneuliImg.src = 'marneuli_plan_f11.png';
+          if (marneuliBadge) marneuliBadge.innerText = 'ARTSTUDIO PROJECT • MƏRTƏBƏ 11 (İCRAÇI SÜİTLƏR VƏ 16 GENİŞ ÖZƏL TERRAS)';
+        } else if (f === 12) {
+          if (marneuliImg) marneuliImg.src = 'marneuli_plan_f12.png';
+          if (marneuliBadge) marneuliBadge.innerText = 'ARTSTUDIO PROJECT • MƏRTƏBƏ 12 (KRAL PENTHOUSE VƏ AÇIQ ROOF-TERRASLAR)';
         }
 
         // Render both the interactive card matrix and blueprint hotspots
@@ -3880,114 +4008,127 @@
     let currentHotspots = [];
     let currentTourRoom = 'living';
 
+    let currentApartmentRooms = [];
+
     const ROOM_HOTSPOTS = {
       'living': [
         {
-          target: 'bedroom',
-          lon: 65,
+          target: 'kitchen',
+          lon: 45,
           lat: -4,
-          icon: '🚪',
-          title: 'Qapıdan Keç: Yataq Otağı',
+          icon: '🍽️',
+          title: 'Mətbəx Zonasına Keçid',
+          sub: 'Açıq Şef Mətbəxi & Ada',
+          enterLon: -110
+        },
+        {
+          target: 'bedroom',
+          lon: 110,
+          lat: -3,
+          icon: '🛏️',
+          title: 'Yataq Otağına Keçid',
           sub: 'Master Yataq Otağı',
-          enterLon: -115
+          enterLon: -80
         },
         {
           target: 'panoramic',
-          lon: -15,
-          lat: -4,
-          icon: '🚪',
-          title: 'Qapıdan Keç: Panoramik Süit',
-          sub: '8K Lüks Terras Zalı',
-          enterLon: 80
+          lon: -40,
+          lat: -2,
+          icon: '🌟',
+          title: 'Panoramik Lounge Zalı',
+          sub: 'İş Otağı & Şöminə',
+          enterLon: 60
+        }
+      ],
+      'kitchen': [
+        {
+          target: 'living',
+          lon: -110,
+          lat: -3,
+          icon: '🛋️',
+          title: 'Qonaq Zalına Qayıt',
+          sub: 'Panoramik Qonaq Zalı',
+          enterLon: 45
         },
         {
-          target: 'lounge',
-          lon: -85,
-          lat: -4,
-          icon: '🚪',
-          title: 'Qapıdan Keç: Şöminə Zalı',
-          sub: 'Taxta Lounge & Bilyard',
-          enterLon: -80
+          target: 'panoramic',
+          lon: 70,
+          lat: -3,
+          icon: '🌟',
+          title: 'Panoramik Terras Zalı',
+          sub: 'Lounge & Mənzərə',
+          enterLon: -60
         }
       ],
       'bedroom': [
         {
           target: 'living',
-          lon: -115,
-          lat: -4,
-          icon: '🚪',
-          title: 'Qapıdan Keç: Qonaq Zalına Qayıt',
-          sub: 'Əsas Lüks Qonaq Zalı',
-          enterLon: 65
-        },
-        {
-          target: 'ensuite',
-          lon: 75,
-          lat: -4,
-          icon: '🚪',
-          title: 'Qapıdan Keç: En-Suite Vanna',
-          sub: 'Lüks Vanna Otağı',
-          enterLon: 0
+          lon: -80,
+          lat: -3,
+          icon: '🛋️',
+          title: 'Qonaq Zalına Qayıt',
+          sub: 'Əsas Qonaq Zalı',
+          enterLon: 110
         },
         {
           target: 'panoramic',
-          lon: 0,
-          lat: -4,
-          icon: '🚪',
-          title: 'Qapıdan Keç: Panoramik Süit',
-          sub: '8K Lüks Terras Zalı',
-          enterLon: -90
+          lon: 45,
+          lat: -3,
+          icon: '🌟',
+          title: 'Panoramik Zala Keçid',
+          sub: 'Şəxsi Lounge',
+          enterLon: 30
         }
       ],
       'panoramic': [
         {
           target: 'living',
-          lon: 80,
-          lat: -4,
-          icon: '🚪',
-          title: 'Qapıdan Keç: Qonaq Zalına Keçid',
-          sub: '8K Əsas Qonaq Zalı',
-          enterLon: -15
+          lon: 60,
+          lat: -3,
+          icon: '🛋️',
+          title: 'Qonaq Zalına Keçid',
+          sub: 'Panoramik Qonaq Zalı',
+          enterLon: -40
         },
         {
           target: 'bedroom',
-          lon: -90,
-          lat: -4,
-          icon: '🚪',
-          title: 'Qapıdan Keç: Yataq Otağına Keçid',
-          sub: '8K Master Yataq Otağı',
-          enterLon: 0
+          lon: -120,
+          lat: -3,
+          icon: '🛏️',
+          title: 'Master Yataq Otağı',
+          sub: 'Geniş Yataq Otağı',
+          enterLon: 45
+        },
+        {
+          target: 'kitchen',
+          lon: -60,
+          lat: -3,
+          icon: '🍽️',
+          title: 'Mətbəx Zonasına Keçid',
+          sub: 'Müasir Mətbəx',
+          enterLon: 70
         }
       ],
-      'lounge': [
+      'bedroom2': [
         {
           target: 'living',
           lon: -80,
-          lat: -4,
-          icon: '🚪',
-          title: 'Qapıdan Keç: Qonaq Zalına Qayıt',
+          lat: -3,
+          icon: '🛋️',
+          title: 'Qonaq Zalına Qayıt',
           sub: 'Əsas Qonaq Zalı',
-          enterLon: -85
-        },
-        {
-          target: 'bedroom',
-          lon: 80,
-          lat: -4,
-          icon: '🚪',
-          title: 'Qapıdan Keç: Yataq Otağına Keçid',
-          sub: 'Master Yataq Otağı',
-          enterLon: -115
+          enterLon: 110
         }
       ],
-      'ensuite': [
+      'terrace': [
         {
-          target: 'bedroom',
-          lon: 0,
-          lat: -4,
-          icon: '🚪',
-          title: 'Qapıdan Keç: Yataq Otağına Qayıt',
-          sub: 'Master Yataq Otağı',
-          enterLon: 75
+          target: 'living',
+          lon: 60,
+          lat: -3,
+          icon: '🛋️',
+          title: 'Qonaq Zalına Keçid',
+          sub: 'Panoramik Qonaq Zalı',
+          enterLon: -40
         }
       ]
     };
@@ -4110,19 +4251,21 @@
     const tourTextureCache = {};
 
     const tourImageMap = {
-      'living': 'real_lythwood_living.jpg',      // 8192x4096 Authentic 8K Grand Living Room
-      'bedroom': 'real_hotel_bedroom.jpg',       // 8192x4096 Authentic 8K Luxury Master Bedroom
-      'panoramic': 'real_panoramic_suite.jpg',   // 8192x4096 Authentic 8K Grand Panoramic Suite
-      'lounge': 'real_wooden_lounge.jpg',        // 8192x4096 Authentic 8K Wooden Lounge & Fireplace
-      'ensuite': 'real_ensuite_bedroom.jpg'      // 8192x4096 Authentic 8K Luxury En-suite Room
+      'living': 'tour_living_4k.jpg',      // Cohesive 4K Luxury Living Room with Panoramic Bay Glass
+      'bedroom': 'tour_bedroom_4k.jpg',    // Cohesive 4K Master Bedroom with Matching Panoramic Bay View & Hardwood
+      'kitchen': 'tour_kitchen_4k.jpg',    // Cohesive 4K Modern Open Kitchen & Marble Island Opening directly into Living Room
+      'panoramic': 'otaq_4k.jpg',          // Cohesive 4K Executive Panoramic Lounge & Study Suite
+      'bedroom2': 'tour_bedroom_4k.jpg',   // Cohesive 4K Second Luxury Bedroom
+      'terrace': 'otaq_4k.jpg'             // Cohesive 4K Panoramic City/Sea Terrace Suite
     };
 
     const tourFallbackMap = {
-      'living': 'tour_living_4k.jpg',
-      'bedroom': 'tour_bedroom_4k.jpg',
-      'panoramic': 'otaq_4k.jpg',
-      'lounge': 'otaq1.jpg',
-      'ensuite': 'tour_bedroom_4k.jpg'
+      'living': 'tour_living.jpg',
+      'bedroom': 'tour_bedroom.jpg',
+      'kitchen': 'tour_kitchen.jpg',
+      'panoramic': 'otaq1.jpg',
+      'bedroom2': 'tour_bedroom.jpg',
+      'terrace': 'otaq1.jpg'
     };
 
     function loadTourTexture(roomType, callback) {
@@ -4130,8 +4273,8 @@
         if (callback) callback(tourTextureCache[roomType]);
         return;
       }
-      const rawPath = tourImageMap[roomType] || 'real_lythwood_living.jpg';
-      const fallback = tourFallbackMap[roomType] || 'tour_living_4k.jpg';
+      const rawPath = tourImageMap[roomType] || 'tour_living_4k.jpg';
+      const fallback = tourFallbackMap[roomType] || 'tour_living.jpg';
 
       tourTextureLoader.load(
         rawPath,
@@ -4168,18 +4311,23 @@
       resetRoomPosition();
 
       document.querySelectorAll('.room-btn').forEach(btn => btn.classList.remove('active'));
-      const activeBtn = Array.from(document.querySelectorAll('.room-btn')).find(b => b.getAttribute('onclick')?.includes(roomType));
+      const activeBtn = Array.from(document.querySelectorAll('.room-btn')).find(b => 
+        (b.dataset && b.dataset.room === roomType) || b.getAttribute('onclick')?.includes(roomType)
+      );
       if (activeBtn) activeBtn.classList.add('active');
 
       const roomNames = {
-        'living': 'Lüks Qonaq Zalı (8K Ultra-HD)',
-        'bedroom': 'Master Yataq Otağı (8K Ultra-HD)',
-        'panoramic': 'Panoramik Terras Süiti (8K Ultra-HD)',
-        'lounge': 'Şöminə & Bilyard Zalı (8K Ultra-HD)',
-        'ensuite': 'En-Suite Vanna Otağı (8K Ultra-HD)'
+        'living': 'Lüks Qonaq Zalı (4K Ultra-HD)',
+        'bedroom': 'Master Yataq Otağı (4K Ultra-HD)',
+        'kitchen': 'Açıq Şef Mətbəxi & Ada (4K Ultra-HD)',
+        'panoramic': 'Panoramik Lounge & Eyvan (4K Ultra-HD)',
+        'bedroom2': 'İkinci Yataq Otağı (4K Ultra-HD)',
+        'terrace': 'Panoramik Terras Zalı (4K Ultra-HD)'
       };
 
-      document.getElementById('tour-apt-title').innerText = `Mənzil ${currentSelectedAptCode} — ${roomNames[roomType] || 'Otaq'}`;
+      const apt = apartments.find(a => String(a.number) === String(currentSelectedAptCode));
+      const aptDesc = apt ? ` • ${apt.rooms} Otaqlı (${apt.area} m²)` : '';
+      document.getElementById('tour-apt-title').innerText = `Mənzil ${currentSelectedAptCode}${aptDesc} — ${roomNames[roomType] || 'Otaq'}`;
 
       loadTourTexture(roomType, (tex) => {
         if (tourSphere) {
@@ -4198,9 +4346,10 @@
       const radarCoords = {
         'living': { x: 50, y: 40, name: 'Qonaq Zalı' },
         'bedroom': { x: 125, y: 40, name: 'Master Yataq' },
-        'panoramic': { x: 175, y: 65, name: 'Terras Süiti' },
-        'lounge': { x: 50, y: 97, name: 'Şöminə Zalı' },
-        'ensuite': { x: 125, y: 97, name: 'En-Suite Vanna' }
+        'panoramic': { x: 175, y: 65, name: 'Eyvan / Terras' },
+        'kitchen': { x: 50, y: 97, name: 'Müasir Mətbəx' },
+        'bedroom2': { x: 125, y: 97, name: '2-ci Yataq' },
+        'terrace': { x: 175, y: 65, name: 'Terras Zalı' }
       };
 
       const coord = radarCoords[roomType] || { x: 50, y: 40, name: 'Otaq' };
@@ -4233,14 +4382,21 @@
       }
     }
 
-    // Creates interactive doorway walkthrough hotspots
+    // Creates interactive doorway walkthrough hotspots matching the apartment rooms
     function renderRoomHotspots(roomType) {
       const container = document.getElementById('hotspots-container');
       container.innerHTML = '';
       currentHotspots = [];
 
       const list = ROOM_HOTSPOTS[roomType] || [];
+      const validTargets = (currentApartmentRooms && currentApartmentRooms.length > 0)
+        ? currentApartmentRooms.map(r => r.key)
+        : ['living', 'bedroom', 'kitchen', 'panoramic'];
+
       list.forEach(hs => {
+        // Only show doors leading to rooms that exist in this apartment plan
+        if (!validTargets.includes(hs.target)) return;
+
         const el = document.createElement('div');
         el.className = 'door-hotspot';
         el.innerHTML = `
@@ -4355,7 +4511,67 @@
         tourRenderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
       }
 
-      const roomToOpen = startRoom || currentSelectedRoomKey || 'living';
+      // Look up chosen apartment in actual architectural schedule
+      const apt = apartments.find(a => String(a.number) === String(currentSelectedAptCode)) || {
+        rooms: 2,
+        area: 68.7,
+        number: currentSelectedAptCode
+      };
+
+      // Construct authentic room set strictly matching the apartment architectural plan
+      let roomsList = [];
+      if (apt.rooms === 1) {
+        roomsList = [
+          { key: 'living', label: '🛋️ Qonaq & Studio Zalı (4K)' },
+          { key: 'kitchen', label: '🍽️ Müasir Mətbəx (4K)' },
+          { key: 'panoramic', label: '🏙️ Panoramik Eyvan (4K)' }
+        ];
+      } else if (apt.rooms === 2) {
+        roomsList = [
+          { key: 'living', label: '🛋️ Qonaq Zalı (4K)' },
+          { key: 'bedroom', label: '🛏️ Master Yataq Otağı (4K)' },
+          { key: 'kitchen', label: '🍽️ Müasir Mətbəx (4K)' },
+          { key: 'panoramic', label: '🏙️ Panoramik Eyvan (4K)' }
+        ];
+      } else if (apt.rooms === 3) {
+        roomsList = [
+          { key: 'living', label: '🛋️ Böyük Qonaq Zalı (4K)' },
+          { key: 'bedroom', label: '🛏️ Master Yataq (4K)' },
+          { key: 'kitchen', label: '🍽️ Açıq Şef Mətbəxi (4K)' },
+          { key: 'bedroom2', label: '🛏️ İkinci Yataq Otağı (4K)' },
+          { key: 'panoramic', label: '🌟 Panoramik Terras Zalı (4K)' }
+        ];
+      } else {
+        roomsList = [
+          { key: 'living', label: '🛋️ Penthouse Qonaq Zalı (4K)' },
+          { key: 'bedroom', label: '🛏️ Master Suite (4K)' },
+          { key: 'kitchen', label: '🍽️ Şef Mətbəxi & Ada (4K)' },
+          { key: 'panoramic', label: '🌟 Panoramik Lounge & Şöminə (4K)' },
+          { key: 'terrace', label: '🏙️ Panoramik Şəhər Terrası (4K)' }
+        ];
+      }
+
+      currentApartmentRooms = roomsList;
+
+      // Populate bottom selector buttons dynamically for this apartment
+      const selector = document.getElementById('tour-room-selector');
+      if (selector) {
+        selector.innerHTML = '';
+        roomsList.forEach(r => {
+          const btn = document.createElement('button');
+          btn.className = 'room-btn';
+          btn.dataset.room = r.key;
+          btn.innerText = r.label;
+          btn.onclick = () => switchTourRoom(r.key);
+          selector.appendChild(btn);
+        });
+      }
+
+      const availableKeys = roomsList.map(r => r.key);
+      const roomToOpen = (startRoom && availableKeys.includes(startRoom))
+        ? startRoom
+        : (currentSelectedRoomKey && availableKeys.includes(currentSelectedRoomKey) ? currentSelectedRoomKey : 'living');
+
       switchTourRoom(roomToOpen);
       if (window.lucide) lucide.createIcons();
     }
