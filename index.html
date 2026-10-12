@@ -10,9 +10,10 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   
-  <!-- Local Three.js, OrbitControls, GLTFLoader and Lucide (100% Offline & Instant) -->
+  <!-- Local Three.js, OrbitControls, DRACOLoader, GLTFLoader and Lucide (100% Offline & Instant) -->
   <script src="three.min.js"></script>
   <script src="OrbitControls.js"></script>
+  <script src="DRACOLoader.js"></script>
   <script src="GLTFLoader.js"></script>
   <script src="lucide.min.js"></script>
 
@@ -146,6 +147,73 @@
       background: var(--primary);
       color: #fff;
       box-shadow: 0 4px 14px rgba(37, 99, 235, 0.4);
+    }
+
+    /* Multi-Building Complex Switcher */
+    .building-switch-container {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--panel-bg);
+      border: 1px solid var(--panel-border);
+      border-radius: 30px;
+      padding: 4px;
+      backdrop-filter: blur(16px);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+      pointer-events: auto;
+    }
+
+    .bldg-switch-btn {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 14px;
+      border-radius: 20px;
+      border: 1px solid transparent;
+      background: transparent;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .bldg-switch-btn:hover {
+      background: rgba(255, 255, 255, 0.08);
+      color: #fff;
+    }
+
+    .bldg-switch-btn.active {
+      background: linear-gradient(135deg, #1e3a8a, #0284c7);
+      border-color: #38bdf8;
+      color: #fff;
+      box-shadow: 0 0 16px rgba(56, 189, 248, 0.4);
+    }
+
+    .bldg-switch-btn.bldg-btn-marneuli.active {
+      background: linear-gradient(135deg, #78350f, #d97706);
+      border-color: #f59e0b;
+      box-shadow: 0 0 16px rgba(245, 158, 11, 0.45);
+    }
+
+    .bldg-badge-pill {
+      background: rgba(255, 255, 255, 0.15);
+      padding: 2px 7px;
+      border-radius: 6px;
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+    }
+
+    .bldg-badge-pill.bldg-b {
+      background: rgba(245, 158, 11, 0.25);
+      color: #fef08a;
+    }
+
+    .bldg-floors-text {
+      font-size: 11px;
+      opacity: 0.8;
+      font-weight: 500;
     }
 
     .header-actions {
@@ -1229,8 +1297,22 @@
       <div class="brand-logo">DW</div>
       <div class="brand-title">
         <h1>DIGIWYZE</h1>
-        <p>DIGITAL RESIDENTIAL TWIN • 14 MƏRTƏBƏ • 56 LÜKS MƏNZİL</p>
+        <p id="brand-subtitle">DIGITAL RESIDENTIAL TWIN • 14 MƏRTƏBƏ • 56 LÜKS MƏNZİL</p>
       </div>
+    </div>
+
+    <!-- Multi-Building Complex Switcher (Blok A / Blok B) -->
+    <div class="building-switch-container">
+      <button class="bldg-switch-btn active" id="bldg-btn-a" onclick="switchBuilding('blok_a')" title="Blok A (DIGIWYZE Tower)">
+        <span class="bldg-badge-pill">BLOK A</span>
+        <span class="bldg-title-text">DIGIWYZE Tower</span>
+        <span class="bldg-floors-text">14 Mərtəbə</span>
+      </button>
+      <button class="bldg-switch-btn bldg-btn-marneuli" id="bldg-btn-b" onclick="switchBuilding('blok_b')" title="Blok B (Marneuli Kompleksi)">
+        <span class="bldg-badge-pill bldg-b">BLOK B</span>
+        <span class="bldg-title-text">Marneuli Kompleksi</span>
+        <span class="bldg-floors-text">18 Mərtəbə</span>
+      </button>
     </div>
 
     <div class="nav-tabs">
@@ -1949,8 +2031,40 @@
     // ==========================================
     // 1. DATA MODEL & STORAGE INITIALIZATION
     // ==========================================
+    // Multi-Building Configuration
+    const BUILDINGS = {
+      'blok_a': {
+        id: 'blok_a',
+        name: 'DIGIWYZE Tower',
+        blokName: 'Blok A',
+        desc: 'DIGITAL RESIDENTIAL TWIN • 14 MƏRTƏBƏ • 56 LÜKS MƏNZİL',
+        modelFile: 'digiwyze_building.glb',
+        floorCount: 14,
+        scaleDim: 38,
+        camPos: new THREE.Vector3(13.0, 7.8, 9.0),
+        targetPos: new THREE.Vector3(3.5, 5.5, -3.2),
+        yStartFraction: 0.14,
+        yEndFraction: 0.94
+      },
+      'blok_b': {
+        id: 'blok_b',
+        name: 'Marneuli Kompleksi',
+        blokName: 'Blok B',
+        desc: 'MARNEULI RESIDENTIAL COMPLEX • 18 MƏRTƏBƏ • 72 PREMİUM MƏNZİL',
+        modelFile: 'marneuli_building.glb',
+        floorCount: 18,
+        scaleDim: 40,
+        camPos: new THREE.Vector3(25.0, 15.0, 26.0),
+        targetPos: new THREE.Vector3(0, 7.5, 0),
+        yStartFraction: 0.05,
+        yEndFraction: 0.96
+      }
+    };
+    let currentBuildingId = 'blok_a';
+
     function generateInitialApartments() {
       const apts = [];
+      // Blok A: DIGIWYZE Tower (14 floors, 56 apartments)
       for (let f = 1; f <= 14; f++) {
         const floorTypes = [
           { num: `${f}01`, rooms: 2, area: 68, basePrice: 105000, type: '2 Otaqlı • Şəhər Panoraması' },
@@ -1962,13 +2076,38 @@
           const status = (f === 3 && idx === 1) ? 'available' : ((f * 3 + idx) % 5 === 0 ? 'sold' : ((f + idx) % 4 === 0 ? 'reserved' : 'available'));
           apts.push({
             id: `A-${t.num}`,
+            bldg: 'blok_a',
             floor: f,
             number: t.num,
             rooms: t.rooms,
             area: t.area,
             price: t.basePrice + (f - 1) * 3500,
             status: status,
-            desc: t.type
+            desc: `Blok A • ${t.type}`
+          });
+        });
+      }
+
+      // Blok B: Marneuli Residental Complex (18 floors, 72 apartments)
+      for (let f = 1; f <= 18; f++) {
+        const floorTypesB = [
+          { num: `${f}01`, rooms: 2, area: 74, basePrice: 118000, type: '2 Otaqlı • Qərb Panoraması' },
+          { num: `${f}02`, rooms: 3, area: 124, basePrice: 195000, type: '3 Otaqlı • Park & Bağça Mənzərəsi' },
+          { num: `${f}03`, rooms: 2, area: 62, basePrice: 98000, type: '2 Otaqlı • Kompakt Lüks' },
+          { num: `${f}04`, rooms: 4, area: 160, basePrice: 270000, type: '4 Otaqlı • Panoramik Penthouse Suite' },
+        ];
+        floorTypesB.forEach((t, idx) => {
+          const status = (f === 3 && idx === 0) ? 'available' : ((f * 2 + idx) % 4 === 0 ? 'sold' : ((f + idx) % 3 === 0 ? 'reserved' : 'available'));
+          apts.push({
+            id: `B-${t.num}`,
+            bldg: 'blok_b',
+            floor: f,
+            number: t.num,
+            rooms: t.rooms,
+            area: t.area,
+            price: t.basePrice + (f - 1) * 3200,
+            status: status,
+            desc: `Blok B (Marneuli) • ${t.type}`
           });
         });
       }
@@ -1978,19 +2117,19 @@
     const DEFAULT_APARTMENTS = generateInitialApartments();
 
     function getApartments() {
-      const stored = localStorage.getItem('digiwyze_apartments_v2');
+      const stored = localStorage.getItem('digiwyze_apartments_v3');
       if (stored) {
         try {
           const parsed = JSON.parse(stored);
-          if (parsed && parsed.length >= 50) return parsed;
+          if (parsed && parsed.length >= 100) return parsed;
         } catch (e) {}
       }
-      localStorage.setItem('digiwyze_apartments_v2', JSON.stringify(DEFAULT_APARTMENTS));
+      localStorage.setItem('digiwyze_apartments_v3', JSON.stringify(DEFAULT_APARTMENTS));
       return DEFAULT_APARTMENTS;
     }
 
     function saveApartments(data) {
-      localStorage.setItem('digiwyze_apartments_v2', JSON.stringify(data));
+      localStorage.setItem('digiwyze_apartments_v3', JSON.stringify(data));
       updateUIWithData();
     }
 
@@ -2196,103 +2335,156 @@
 
     let currentBuildingBounds = { w: 32, h: 28, d: 24, cx: 0, cz: 0 };
 
-    // Loads the actual 3D model with proper centering and materials
-    function loadBuildingModel() {
-      const loader = new THREE.GLTFLoader();
+    // Loads the selected 3D building model with DRACO compression support, centering and materials
+    function loadBuildingModel(bldgId) {
+      if (bldgId) currentBuildingId = bldgId;
+      const bldg = BUILDINGS[currentBuildingId] || BUILDINGS['blok_a'];
+
       const indicator = document.getElementById('loading-indicator');
       const text = document.getElementById('loading-text');
+      if (indicator) indicator.style.display = 'flex';
+      if (text) text.innerText = `${bldg.name} yüklənir...`;
 
-      function tryLoad(url, onFail) {
-        loader.load(
-          encodeURI(url),
-          function (gltf) {
-            const model = gltf.scene;
-            model.traverse((node) => {
-              if (node.isMesh) {
-                node.castShadow = true;
-                node.receiveShadow = true;
-                if (node.material) {
-                  node.material.roughness = 0.65;
-                  node.material.metalness = 0.15;
-                  node.material.needsUpdate = true;
-                }
-              }
-            });
+      // Clear previous building objects and floor hitboxes cleanly
+      while (buildingGroup.children.length > 0) {
+        const obj = buildingGroup.children[0];
+        buildingGroup.remove(obj);
+        if (obj.geometry) obj.geometry.dispose();
+        if (obj.material) {
+          if (Array.isArray(obj.material)) obj.material.forEach(m => m.dispose());
+          else obj.material.dispose();
+        }
+      }
+      floorHitboxes = [];
+      currentHoveredFloorNum = null;
 
-            // Center and scale model properly
-            const box = new THREE.Box3().setFromObject(model);
-            const center = new THREE.Vector3();
-            box.getCenter(center);
-            const size = new THREE.Vector3();
-            box.getSize(size);
-            const maxDim = Math.max(size.x, size.y, size.z);
-            const scale = 38 / maxDim;
-            model.scale.set(scale, scale, scale);
-
-            // Recompute box after scale and center cleanly
-            box.setFromObject(model);
-            box.getCenter(center);
-            model.position.x = -center.x;
-            model.position.y = -box.min.y;
-            model.position.z = -center.z;
-
-            buildingGroup.add(model);
-            indicator.style.display = 'none';
-
-            // Get computed bounds after positioning
-            const finalBox = new THREE.Box3().setFromObject(model);
-            const finalSize = new THREE.Vector3();
-            finalBox.getSize(finalSize);
-            const finalCenter = new THREE.Vector3();
-            finalBox.getCenter(finalCenter);
-
-            currentBuildingBounds = {
-              w: finalSize.x,
-              h: finalSize.y,
-              d: finalSize.z,
-              cx: finalCenter.x,
-              cz: finalCenter.z
-            };
-
-            // Create interactive yellow hover hitboxes around the residential tower floors
-            createFloorHitboxes(currentBuildingBounds);
-
-            // Close-up hero framing right in front of the DIGIWYZE building
-            controls.target.set(0, finalSize.y * 0.42, 0);
-            camera.position.set(finalSize.x * 0.72, finalSize.y * 0.52, finalSize.z * 1.15);
-            controls.update();
-
-            if (selectedFloor > 0) {
-              highlightFloorYellow(selectedFloor);
-            }
-
-            showToast('DIGIWYZE 3D Modeli uğurla yükləndi!');
-          },
-          function (xhr) {
-            if (xhr.total > 0) {
-              const percent = Math.round((xhr.loaded / xhr.total) * 100);
-              text.innerText = `3D Model yüklənir: ${percent}%`;
-            }
-          },
-          function (error) {
-            if (onFail) onFail();
-          }
-        );
+      const loader = new THREE.GLTFLoader();
+      if (THREE.DRACOLoader) {
+        const dracoLoader = new THREE.DRACOLoader();
+        dracoLoader.setDecoderPath('draco/');
+        loader.setDRACOLoader(dracoLoader);
       }
 
-      // 1. Try DIGIWYZE GLB first
-      tryLoad('digiwyze_building.glb', () => {
-        tryLoad('torre_garten.glb', () => {
-          // 2. Try optimized GLB
-          tryLoad('building_optimized.glb', () => {
-            // 3. Try raw original GLB
-            tryLoad('apartment building 3d model.glb', () => {
-              indicator.style.display = 'none';
-              showToast('3D Model yüklənərkən xəta baş verdi.');
-            });
-          });
+      function onModelLoaded(gltf) {
+        const model = gltf.scene;
+        model.traverse((node) => {
+          if (node.isMesh) {
+            node.castShadow = true;
+            node.receiveShadow = true;
+            if (node.material) {
+              node.material.roughness = 0.65;
+              node.material.metalness = 0.15;
+              node.material.needsUpdate = true;
+            }
+          }
         });
-      });
+
+        // Center and scale model properly
+        const box = new THREE.Box3().setFromObject(model);
+        const center = new THREE.Vector3();
+        box.getCenter(center);
+        const size = new THREE.Vector3();
+        box.getSize(size);
+        const maxDim = Math.max(size.x, size.y, size.z);
+        const targetScale = (bldg.scaleDim || 38) / maxDim;
+        model.scale.set(targetScale, targetScale, targetScale);
+
+        // Recompute box after scale and center cleanly
+        box.setFromObject(model);
+        box.getCenter(center);
+        model.position.x = -center.x;
+        model.position.y = -box.min.y;
+        model.position.z = -center.z;
+
+        buildingGroup.add(model);
+        if (indicator) indicator.style.display = 'none';
+
+        // Get computed bounds after positioning
+        const finalBox = new THREE.Box3().setFromObject(model);
+        const finalSize = new THREE.Vector3();
+        finalBox.getSize(finalSize);
+        const finalCenter = new THREE.Vector3();
+        finalBox.getCenter(finalCenter);
+
+        currentBuildingBounds = {
+          w: finalSize.x,
+          h: finalSize.y,
+          d: finalSize.z,
+          cx: finalCenter.x,
+          cz: finalCenter.z
+        };
+
+        // Create interactive yellow hover hitboxes around the residential tower floors
+        createFloorHitboxes(currentBuildingBounds);
+
+        // Camera hero framing for this specific building
+        if (bldg.camPos && bldg.targetPos) {
+          camera.position.copy(bldg.camPos);
+          controls.target.copy(bldg.targetPos);
+        } else {
+          controls.target.set(0, finalSize.y * 0.45, 0);
+          camera.position.set(finalSize.x * 0.72, finalSize.y * 0.52, finalSize.z * 1.15);
+        }
+        controls.update();
+
+        initFloorButtons();
+        selectFloor(3);
+        updateFilterCounts();
+
+        showToast(`${bldg.name} 3D Modeli uğurla yükləndi!`);
+      }
+
+      function onProgress(xhr) {
+        if (xhr.total > 0 && text) {
+          const percent = Math.round((xhr.loaded / xhr.total) * 100);
+          text.innerText = `${bldg.name} yüklənir: ${percent}%`;
+        }
+      }
+
+      function onError(err) {
+        console.error('Model load error:', err);
+        // Fallback for Blok A if digiwyze_building.glb fails
+        if (bldg.id === 'blok_a') {
+          loader.load('apartment building 3d model.glb', onModelLoaded, onProgress, () => {
+            if (indicator) indicator.style.display = 'none';
+            showToast(`${bldg.name} yüklənərkən xəta baş verdi.`);
+          });
+        } else {
+          if (indicator) indicator.style.display = 'none';
+          showToast(`${bldg.name} yüklənərkən xəta baş verdi.`);
+        }
+      }
+
+      loader.load(encodeURI(bldg.modelFile), onModelLoaded, onProgress, onError);
+    }
+
+    function switchBuilding(bldgId) {
+      if (!BUILDINGS[bldgId]) return;
+      currentBuildingId = bldgId;
+      const bldg = BUILDINGS[bldgId];
+
+      // Update button active state in header
+      const btnA = document.getElementById('bldg-btn-a');
+      const btnB = document.getElementById('bldg-btn-b');
+      if (btnA && btnB) {
+        if (bldgId === 'blok_a') {
+          btnA.classList.add('active');
+          btnB.classList.remove('active');
+        } else {
+          btnB.classList.add('active');
+          btnA.classList.remove('active');
+        }
+      }
+
+      // Update header subtitle
+      const subTitle = document.getElementById('brand-subtitle');
+      if (subTitle) subTitle.innerText = bldg.desc || bldg.name;
+
+      // Update floor badge subtitle
+      const badgeSub = document.querySelector('.badge-sub');
+      if (badgeSub) badgeSub.innerText = `4 Lüks Mənzil • ${bldg.blokName}`;
+
+      loadBuildingModel(bldgId);
     }
 
     // ==========================================
@@ -2308,10 +2500,11 @@
       floorHitboxes.forEach(m => buildingGroup.remove(m));
       floorHitboxes = [];
 
+      const bldg = BUILDINGS[currentBuildingId] || BUILDINGS['blok_a'];
       const b = bounds || currentBuildingBounds;
-      const floorCount = 14;
-      const yStart = b.h * 0.14; // Above the ground podium terrace
-      const yEnd = b.h * 0.94;   // Below the rooftop pergola
+      const floorCount = bldg.floorCount || 14;
+      const yStart = b.h * (bldg.yStartFraction !== undefined ? bldg.yStartFraction : 0.14);
+      const yEnd = b.h * (bldg.yEndFraction !== undefined ? bldg.yEndFraction : 0.94);
       const floorH = (yEnd - yStart) / floorCount;
 
       for (let f = 1; f <= floorCount; f++) {
@@ -2393,6 +2586,8 @@
       floorRaycaster.setFromCamera(floorMouse, camera);
       const intersects = floorRaycaster.intersectObjects(floorHitboxes);
 
+      const bldg = BUILDINGS[currentBuildingId] || BUILDINGS['blok_a'];
+
       if (intersects.length > 0) {
         const hit = intersects[0].object;
         const f = hit.userData.floor;
@@ -2403,7 +2598,7 @@
 
           // Real-time update of floating badge on right so it always matches the hovered yellow floor!
           const badgeTitle = document.getElementById('badge-floor-title');
-          if (badgeTitle) badgeTitle.innerText = `Mərtəbə ${f}`;
+          if (badgeTitle) badgeTitle.innerText = `${bldg.blokName} • Mərtəbə ${f}`;
           renderBadgeApartments(f);
 
           // Highlight corresponding button in left floor selector
@@ -2417,7 +2612,7 @@
         tooltip.style.display = 'block';
         tooltip.style.left = (e.clientX + 16) + 'px';
         tooltip.style.top = (e.clientY + 16) + 'px';
-        tooltip.innerHTML = `<strong>🏢 Mərtəbə ${f}</strong> • Daxil olmaq üçün bir kliklə vurun ➔`;
+        tooltip.innerHTML = `<strong>🏢 ${bldg.blokName} • Mərtəbə ${f}</strong> • Daxil olmaq üçün bir kliklə vurun ➔`;
         document.body.style.cursor = 'pointer';
       } else {
         if (currentHoveredFloorNum !== null) {
@@ -2430,7 +2625,7 @@
           if (selectedFloor > 0) {
             highlightFloorYellow(selectedFloor);
             const badgeTitle = document.getElementById('badge-floor-title');
-            if (badgeTitle) badgeTitle.innerText = `Mərtəbə ${selectedFloor}`;
+            if (badgeTitle) badgeTitle.innerText = `${bldg.blokName} • Mərtəbə ${selectedFloor}`;
             renderBadgeApartments(selectedFloor);
           } else {
             clearFloorYellow();
@@ -2518,20 +2713,42 @@
       }
     });
 
+    // Multi-Building Apartment Helpers
+    function getActiveApartments() {
+      return apartments.filter(a => (a.bldg ? a.bldg === currentBuildingId : currentBuildingId === 'blok_a'));
+    }
+
+    function updateFilterCounts() {
+      const activeApts = getActiveApartments();
+      const countAll = document.getElementById('chip-count-all');
+      const count1 = document.getElementById('chip-count-1');
+      const count2 = document.getElementById('chip-count-2');
+      const count3 = document.getElementById('chip-count-3');
+      const count4 = document.getElementById('chip-count-4');
+      const countAvail = document.getElementById('chip-count-avail');
+      if (countAll) countAll.innerText = activeApts.length;
+      if (count1) count1.innerText = activeApts.filter(a => a.rooms === 1).length;
+      if (count2) count2.innerText = activeApts.filter(a => a.rooms === 2).length;
+      if (count3) count3.innerText = activeApts.filter(a => a.rooms === 3).length;
+      if (count4) count4.innerText = activeApts.filter(a => a.rooms === 4).length;
+      if (countAvail) countAvail.innerText = activeApts.filter(a => a.status === 'available').length;
+    }
+
     // Digiwyze Interactive Smart Filter
     function applyDigiwyzeFilter(filterType, btn) {
       currentDigiwyzeFilter = filterType;
       document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
       if (btn) btn.classList.add('active');
 
+      const activeApts = getActiveApartments();
       let matchingApts = [];
       if (filterType === 'all') {
-        matchingApts = apartments;
+        matchingApts = activeApts;
       } else if (filterType === 'available') {
-        matchingApts = apartments.filter(a => a.status === 'available');
+        matchingApts = activeApts.filter(a => a.status === 'available');
       } else {
         const rooms = parseInt(filterType);
-        matchingApts = apartments.filter(a => a.rooms === rooms);
+        matchingApts = activeApts.filter(a => a.rooms === rooms);
       }
 
       const matchingFloors = new Set(matchingApts.map(a => a.floor));
@@ -2567,25 +2784,29 @@
       const label = filterType === 'all' 
         ? 'Bütün Mənzillər' 
         : (filterType === 'available' ? 'Satışda Olanlar' : `${filterType} Otaqlı Mənzillər`);
-      showToast(`🔍 Digiwyze: ${label} (${matchingApts.length} mənzil mövcuddur)`);
+      const bldg = BUILDINGS[currentBuildingId] || BUILDINGS['blok_a'];
+      showToast(`🔍 ${bldg.blokName}: ${label} (${matchingApts.length} mənzil)`);
     }
 
     function initFloorButtons() {
+      const bldg = BUILDINGS[currentBuildingId] || BUILDINGS['blok_a'];
+      const maxFloor = bldg.floorCount || 14;
+
       const container = document.getElementById('floor-btn-list');
       if (container) {
         container.innerHTML = '';
-        for (let f = 14; f >= 1; f--) {
+        for (let f = maxFloor; f >= 1; f--) {
           const btn = document.createElement('button');
           btn.className = `floor-btn ${f === selectedFloor ? 'active' : ''}`;
           btn.setAttribute('data-floor', f);
           btn.onclick = () => selectFloor(f);
           btn.ondblclick = () => enterFloor(f);
-          const tag = f === 14 ? 'PNT' : (f === 13 ? 'VIP' : (f === 1 ? 'LOB' : 'MƏR'));
+          const tag = f === maxFloor ? 'PNT' : (f === maxFloor - 1 ? 'VIP' : (f === 1 ? 'LOB' : 'MƏR'));
           btn.innerHTML = `${f}<span>${tag}</span>`;
           btn.addEventListener('mouseenter', () => {
             highlightFloorYellow(f);
             const badgeTitle = document.getElementById('badge-floor-title');
-            if (badgeTitle) badgeTitle.innerText = `Mərtəbə ${f}`;
+            if (badgeTitle) badgeTitle.innerText = `${bldg.blokName} • Mərtəbə ${f}`;
             renderBadgeApartments(f);
           });
           btn.addEventListener('mouseleave', () => {
@@ -2593,7 +2814,7 @@
               if (selectedFloor > 0) {
                 highlightFloorYellow(selectedFloor);
                 const badgeTitle = document.getElementById('badge-floor-title');
-                if (badgeTitle) badgeTitle.innerText = `Mərtəbə ${selectedFloor}`;
+                if (badgeTitle) badgeTitle.innerText = `${bldg.blokName} • Mərtəbə ${selectedFloor}`;
                 renderBadgeApartments(selectedFloor);
               } else {
                 clearFloorYellow();
@@ -2608,11 +2829,11 @@
       const planSelect = document.getElementById('plan-floor-select');
       if (planSelect) {
         planSelect.innerHTML = '';
-        for (let f = 14; f >= 1; f--) {
+        for (let f = maxFloor; f >= 1; f--) {
           const opt = document.createElement('option');
           opt.value = f;
-          const tag = f === 14 ? 'Penthouse' : (f === 13 ? 'VIP Suite' : (f === 1 ? 'Lobi Mərtəbəsi' : 'Yaşayış'));
-          opt.text = `Mərtəbə ${f} (${tag})`;
+          const tag = f === maxFloor ? 'Penthouse' : (f === maxFloor - 1 ? 'VIP Suite' : (f === 1 ? 'Lobi Mərtəbəsi' : 'Yaşayış'));
+          opt.text = `${bldg.blokName} • Mərtəbə ${f} (${tag})`;
           if (f === (selectedFloor > 0 ? selectedFloor : 3)) opt.selected = true;
           planSelect.appendChild(opt);
         }
@@ -2620,17 +2841,19 @@
     }
 
     function changePlanFloor(val) {
+      const bldg = BUILDINGS[currentBuildingId] || BUILDINGS['blok_a'];
       const f = parseInt(val);
-      if (f >= 1 && f <= 14) {
+      if (f >= 1 && f <= bldg.floorCount) {
         selectFloor(f);
         update2DPlanView(f);
       }
     }
 
     function stepPlanFloor(delta) {
+      const bldg = BUILDINGS[currentBuildingId] || BUILDINGS['blok_a'];
       let nextF = (selectedFloor > 0 ? selectedFloor : 3) + delta;
       if (nextF < 1) nextF = 1;
-      if (nextF > 14) nextF = 14;
+      if (nextF > bldg.floorCount) nextF = bldg.floorCount;
       const planSelect = document.getElementById('plan-floor-select');
       if (planSelect) planSelect.value = nextF;
       changePlanFloor(nextF);
@@ -2664,20 +2887,7 @@
 
     document.addEventListener('DOMContentLoaded', () => {
       initFloorButtons();
-      // Update Digiwyze dynamic apartment counts
-      const apts = getApartments();
-      const countAll = document.getElementById('chip-count-all');
-      const count1 = document.getElementById('chip-count-1');
-      const count2 = document.getElementById('chip-count-2');
-      const count3 = document.getElementById('chip-count-3');
-      const count4 = document.getElementById('chip-count-4');
-      const countAvail = document.getElementById('chip-count-avail');
-      if (countAll) countAll.innerText = apts.length;
-      if (count1) count1.innerText = apts.filter(a => a.rooms === 1).length;
-      if (count2) count2.innerText = apts.filter(a => a.rooms === 2).length;
-      if (count3) count3.innerText = apts.filter(a => a.rooms === 3).length;
-      if (count4) count4.innerText = apts.filter(a => a.rooms === 4).length;
-      if (countAvail) countAvail.innerText = apts.filter(a => a.status === 'available').length;
+      updateFilterCounts();
     });
 
     // Smooth camera transition function
@@ -2744,12 +2954,14 @@
         else btn.classList.remove('active');
       });
 
+      const bldg = BUILDINGS[currentBuildingId] || BUILDINGS['blok_a'];
+
       // Highlight the selected floor persistently in yellow
       if (floorNum > 0) {
         highlightFloorYellow(floorNum);
-        const yStart = currentBuildingBounds.h * 0.14;
-        const yEnd = currentBuildingBounds.h * 0.94;
-        const fH = (yEnd - yStart) / 14;
+        const yStart = currentBuildingBounds.h * (bldg.yStartFraction !== undefined ? bldg.yStartFraction : 0.14);
+        const yEnd = currentBuildingBounds.h * (bldg.yEndFraction !== undefined ? bldg.yEndFraction : 0.94);
+        const fH = (yEnd - yStart) / (bldg.floorCount || 14);
         const floorY = yStart + (floorNum - 0.5) * fH;
         smoothMoveCamera(
           new THREE.Vector3(currentBuildingBounds.w * 0.72, floorY + 2.5, currentBuildingBounds.d * 1.05),
@@ -2758,7 +2970,7 @@
         const floorBadge = document.getElementById('floor-badge');
         if (floorBadge) floorBadge.style.display = 'block';
         const badgeTitle = document.getElementById('badge-floor-title');
-        if (badgeTitle) badgeTitle.innerText = `Mərtəbə ${floorNum}`;
+        if (badgeTitle) badgeTitle.innerText = `${bldg.blokName} • Mərtəbə ${floorNum}`;
         renderBadgeApartments(floorNum);
       } else {
         clearFloorYellow();
@@ -2776,8 +2988,9 @@
 
     function renderBadgeApartments(floorNum) {
       const container = document.getElementById('badge-apt-list');
+      if (!container) return;
       container.innerHTML = '';
-      const list = apartments.filter(a => a.floor === floorNum);
+      const list = apartments.filter(a => (a.bldg ? a.bldg === currentBuildingId : currentBuildingId === 'blok_a') && a.floor === floorNum);
 
       list.forEach(apt => {
         const card = document.createElement('div');
@@ -2877,17 +3090,18 @@
     }
 
     function update2DPlanView(floorNum) {
+      const bldg = BUILDINGS[currentBuildingId] || BUILDINGS['blok_a'];
       const f = parseInt(floorNum) || 3;
       selectedFloor = f;
 
       const titleEl = document.getElementById('plan-modal-title');
-      if (titleEl) titleEl.innerText = `Mərtəbə ${f} — Memarlıq və Mənzil Planı`;
+      if (titleEl) titleEl.innerText = `${bldg.blokName} • Mərtəbə ${f} — Memarlıq və Mənzil Planı`;
 
       const planSelect = document.getElementById('plan-floor-select');
       if (planSelect && parseInt(planSelect.value) !== f) {
         planSelect.value = f;
       }
-      const floorApts = apartments.filter(a => a.floor === f);
+      const floorApts = apartments.filter(a => (a.bldg ? a.bldg === currentBuildingId : currentBuildingId === 'blok_a') && a.floor === f);
 
       // Populate Apartment Selector Pills in Floor Plan Header
       const pillsContainer = document.getElementById('plan-apt-pills');
@@ -2935,7 +3149,7 @@
       });
 
       // Default select first apartment & its living room safely
-      const targetApt = floorApts[0] || apartments.find(a => a.floor === f);
+      const targetApt = floorApts[0] || apartments.find(a => (a.bldg ? a.bldg === currentBuildingId : currentBuildingId === 'blok_a') && a.floor === f);
       if (targetApt) {
         selectApartmentByCode(targetApt.number);
       }
@@ -2947,7 +3161,10 @@
     }
 
     function selectApartmentByCode(code) {
-      const apt = apartments.find(a => a.number === String(code) || a.id === String(code));
+      let apt = apartments.find(a => (a.bldg ? a.bldg === currentBuildingId : currentBuildingId === 'blok_a') && (a.number === String(code) || a.id === String(code)));
+      if (!apt) {
+        apt = apartments.find(a => a.number === String(code) || a.id === String(code));
+      }
       if (!apt) return;
 
       currentSelectedAptCode = apt.number;
@@ -2961,6 +3178,8 @@
         }
       });
 
+      const bldg = BUILDINGS[apt.bldg || currentBuildingId] || BUILDINGS['blok_a'];
+
       // Update Sidebar Card
       const sideAptNum = document.getElementById('side-apt-num');
       const sideAptSubtitle = document.getElementById('side-apt-subtitle');
@@ -2970,8 +3189,8 @@
       const sideRooms = document.getElementById('side-rooms');
       const pill = document.getElementById('side-status-pill');
 
-      if (sideAptNum) sideAptNum.innerText = `Mənzil ${apt.number}`;
-      if (sideAptSubtitle) sideAptSubtitle.innerText = `Mərtəbə ${apt.floor} • Şəhər və Dəniz Panoraması`;
+      if (sideAptNum) sideAptNum.innerText = `Mənzil ${apt.number} (${bldg.blokName})`;
+      if (sideAptSubtitle) sideAptSubtitle.innerText = `${bldg.blokName} • Mərtəbə ${apt.floor} • Şəhər və Panoramik Mənzərə`;
       if (sidePrice) sidePrice.innerText = `${formatMoney(apt.price)} AZN`;
       if (sidePriceM2) sidePriceM2.innerText = `1 m² = ${formatMoney(Math.round(apt.price / apt.area))} AZN`;
       if (sideArea) sideArea.innerText = `${apt.area} m²`;
@@ -3734,13 +3953,21 @@
     // 8. UTILITIES & CONTROLS
     // ==========================================
     function resetCamera() {
-      // Smooth close-up focus right in front of the building entrance & balconies
-      smoothMoveCamera(new THREE.Vector3(13.0, 7.8, 9.0), new THREE.Vector3(3.5, 5.5, -3.2));
+      const bldg = BUILDINGS[currentBuildingId] || BUILDINGS['blok_a'];
+      if (bldg.camPos && bldg.targetPos) {
+        smoothMoveCamera(bldg.camPos, bldg.targetPos);
+      } else {
+        smoothMoveCamera(new THREE.Vector3(13.0, 7.8, 9.0), new THREE.Vector3(3.5, 5.5, -3.2));
+      }
     }
 
     function viewOverview() {
-      // Overview of the entire complex, fountain, lake and park
-      smoothMoveCamera(new THREE.Vector3(30.0, 22.0, 32.0), new THREE.Vector3(0, 4, 0));
+      const bldg = BUILDINGS[currentBuildingId] || BUILDINGS['blok_a'];
+      if (bldg.id === 'blok_b') {
+        smoothMoveCamera(new THREE.Vector3(45.0, 30.0, 45.0), new THREE.Vector3(0, 6, 0));
+      } else {
+        smoothMoveCamera(new THREE.Vector3(30.0, 22.0, 32.0), new THREE.Vector3(0, 4, 0));
+      }
     }
 
     function toggleAutoRotate() {
