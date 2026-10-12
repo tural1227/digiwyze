@@ -2053,11 +2053,11 @@
         desc: 'MARNEULI RESIDENTIAL COMPLEX • 18 MƏRTƏBƏ • 72 PREMİUM MƏNZİL',
         modelFile: 'marneuli_building.glb',
         floorCount: 18,
-        scaleDim: 40,
-        camPos: new THREE.Vector3(25.0, 15.0, 26.0),
-        targetPos: new THREE.Vector3(0, 7.5, 0),
-        yStartFraction: 0.05,
-        yEndFraction: 0.96
+        scaleDim: 45,
+        camPos: new THREE.Vector3(0.0, 16.0, 38.0),
+        targetPos: new THREE.Vector3(0, 6.0, 0),
+        yStartFraction: 0.02,
+        yEndFraction: 0.98
       }
     };
     let currentBuildingId = 'blok_a';
@@ -2371,11 +2371,39 @@
           if (node.isMesh) {
             node.castShadow = true;
             node.receiveShadow = true;
-            if (node.material) {
-              node.material.roughness = 0.65;
-              node.material.metalness = 0.15;
-              node.material.needsUpdate = true;
-            }
+            const mats = Array.isArray(node.material) ? node.material : (node.material ? [node.material] : []);
+            mats.forEach((mat) => {
+              if (!mat) return;
+              const name = (mat.name || '').toLowerCase();
+              if (name.includes('glass')) {
+                mat.transparent = true;
+                mat.opacity = 0.55;
+                mat.roughness = 0.05;
+                mat.metalness = 0.85;
+                mat.color = new THREE.Color(0x7dd3fc); // luxury azure crystal glass
+                mat.depthWrite = false;
+              } else if (name.includes('alumin') || name.includes('ალუმინი') || name.includes('black')) {
+                mat.color = new THREE.Color(0x27272a); // dark architectural anthracite
+                mat.metalness = 0.8;
+                mat.roughness = 0.25;
+              } else if (name.includes('steel') || name.includes('metal') || name.includes('galvan')) {
+                mat.color = new THREE.Color(0xd4d4d8); // architectural stainless steel
+                mat.metalness = 0.85;
+                mat.roughness = 0.2;
+              } else if (name.includes('cmu') || name.includes('plaster') || name.includes('wall')) {
+                mat.color = new THREE.Color(0xf8fafc); // luxury bright white/travertine facade
+                mat.roughness = 0.65;
+                mat.metalness = 0.05;
+              } else if (name.includes('concrete')) {
+                mat.color = new THREE.Color(0xd1d5db); // light modern concrete
+                mat.roughness = 0.75;
+                mat.metalness = 0.05;
+              } else {
+                mat.roughness = 0.6;
+                mat.metalness = 0.15;
+              }
+              mat.needsUpdate = true;
+            });
           }
         });
 
