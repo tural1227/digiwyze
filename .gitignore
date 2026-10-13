@@ -5,9 +5,11 @@ __pycache__/
 *.log
 .DS_Store
 Thumbs.db
+node_modules/
 
-# Large redundant original asset (project uses torre_garten.glb and building_optimized.glb)
+# Large uncompressed raw GLB assets (>100MB exceeds GitHub limit)
 apartment building 3d model.glb
+phase_1_and_2.glb
 
 # Test and verification artifacts
 playwright_*.png

@@ -2302,13 +2302,13 @@
     const BUILDINGS = {
       'blok_b': {
         id: 'blok_b',
-        name: 'Marneuli City Residence',
+        name: 'Marneuli City Residence (Phase 1 & 2)',
         blokName: 'Marneuli Kompleksi',
-        desc: 'MARNEULI CITY RESIDENCE • 12 MƏRTƏBƏ • 183 REAL MEMARLIQ MƏNZİLİ',
-        modelFile: 'marneuli_building.glb?v=20261012_v4',
+        desc: 'MARNEULI CITY RESIDENCE • PHASE 1 & 2 • 12 MƏRTƏBƏ • 183 REAL MEMARLIQ MƏNZİLİ',
+        modelFile: 'phase_1_and_2_optimized.glb?v=phase1_2_final_v1',
         floorCount: 12,
-        scaleDim: 45,
-        camPos: new THREE.Vector3(0.0, 16.0, 38.0),
+        scaleDim: 48,
+        camPos: new THREE.Vector3(0.0, 18.0, 42.0),
         targetPos: new THREE.Vector3(0, 6.0, 0),
         yStartFraction: 0.02,
         yEndFraction: 0.98,
@@ -2804,47 +2804,53 @@
             node.castShadow = true;
             node.receiveShadow = true;
             const mats = Array.isArray(node.material) ? node.material : (node.material ? [node.material] : []);
-            mats.forEach((mat) => {
-              if (!mat) return;
-              const name = (mat.name || '').toLowerCase();
-              if (name.includes('glass')) {
+            const newMats = mats.map((originalMat) => {
+              if (!originalMat) return originalMat;
+              const mat = originalMat.clone();
+              const nodeName = (node.name || '').toLowerCase();
+              const matName = (mat.name || '').toLowerCase();
+              const combined = nodeName + ' ' + matName;
+
+              if (combined.includes('glass') || combined.includes('glazed') || combined.includes('shusha')) {
                 mat.transparent = true;
                 mat.opacity = 0.55;
                 mat.roughness = 0.05;
                 mat.metalness = 0.90;
                 mat.color = new THREE.Color(0x88ccff); // luxury architectural crystal glass
                 mat.depthWrite = false;
-              } else if (name.includes('alumin') || name.includes('ალუმინი') || name.includes('black')) {
-                mat.color = new THREE.Color(0x222226); // premium dark graphite architectural profile
+              } else if (combined.includes('railing') || combined.includes('alumin') || combined.includes('black') || combined.includes('metal') || combined.includes('steel') || combined.includes('50mm')) {
+                mat.color = new THREE.Color(0x222226); // premium dark graphite architectural profile & railings
                 mat.metalness = 0.75;
                 mat.roughness = 0.35;
-              } else if (name.includes('steel') || name.includes('metal') || name.includes('galvan')) {
-                mat.color = new THREE.Color(0xdadce0); // metallic railings and steel frames
-                mat.metalness = 0.85;
-                mat.roughness = 0.25;
-              } else if (name.includes('cmu_250') || name.includes('plaster') || name.includes('wall') || name.includes('default_wall')) {
-                mat.map = texWall;
-                mat.color = new THREE.Color(0xffffff);
-                mat.roughness = 0.70;
+              } else if (combined.includes('slab') || combined.includes('str_') || combined.includes('concrete')) {
+                mat.map = texConcrete;
+                mat.color = new THREE.Color(0xe5e7eb); // architectural concrete slabs & columns
+                mat.roughness = 0.80;
                 mat.metalness = 0.05;
-              } else if (name.includes('cmu_300') || name.includes('new_material')) {
+              } else if (combined.includes('cmu_300') || combined.includes('cmu') || combined.includes('tsokoli') || combined.includes('ცოკოლი') || combined.includes('travertine') || combined.includes('new_material')) {
                 mat.map = texTravertine;
                 mat.color = new THREE.Color(0xf5f3ee); // elegant warm travertine stone facade
                 mat.roughness = 0.65;
                 mat.metalness = 0.05;
-              } else if (name.includes('concrete')) {
-                mat.map = texConcrete;
-                mat.color = new THREE.Color(0xe5e7eb); // architectural concrete
-                mat.roughness = 0.80;
-                mat.metalness = 0.05;
+              } else if (combined.includes('plant') || combined.includes('proxy') || combined.includes('tree') || combined.includes('grass')) {
+                mat.color = new THREE.Color(0x2d6a4f); // lush landscaping green
+                mat.roughness = 0.85;
+                mat.metalness = 0.0;
+              } else if (combined.includes('door')) {
+                mat.map = texWood;
+                mat.color = new THREE.Color(0x8b5e3c); // warm wood doors
+                mat.roughness = 0.60;
+                mat.metalness = 0.10;
               } else {
                 mat.map = texWall;
-                mat.color = new THREE.Color(0xfafafa);
+                mat.color = new THREE.Color(0xfafafa); // warm clean facade plaster
                 mat.roughness = 0.65;
                 mat.metalness = 0.05;
               }
               mat.needsUpdate = true;
+              return mat;
             });
+            node.material = Array.isArray(node.material) ? newMats : newMats[0];
           }
         });
 
